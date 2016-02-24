@@ -1,0 +1,2009 @@
+
+    #include <compat/ina90.h>
+    #include <avr/iom8535.h>
+    #include <avr/signal.h>
+    #include <math.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <ctype.h>
+    #include <string.h>
+    #include <avr/pgmspace.h>
+
+
+	unsigned char RegimStop;
+
+	volatile    unsigned char DelError;
+	volatile    unsigned int DPStart;
+	volatile    unsigned char CtStart;
+
+	volatile    unsigned char RegimDP;
+	volatile    unsigned char CtEnableKn;
+volatile	int RGlob;
+
+//volatile    unsigned int CtDP;
+//volatile    unsigned int UABStart;
+
+volatile    unsigned int UABOld;
+    unsigned char CtErrorRS;
+volatile    unsigned int UABNew;
+    unsigned char NumberBlok;
+    unsigned char NumberReceiveRS;
+
+volatile    unsigned char CtUsart;
+    unsigned char NumberLinkRS;
+
+    unsigned char RegTransmitRS[7];
+    unsigned char RamReceiveRS[8];
+    unsigned char RomReceiveRS[7];
+
+    unsigned char	ControlTransmitRS;
+    unsigned char ControlReceiveRS;
+
+
+	volatile unsigned char CtReceiveRS;
+
+    const unsigned char CtReceiveRS0=7;
+    unsigned int DPOld;
+    unsigned char CtChangeAlfa;
+    unsigned int URef;
+    unsigned char CtTest;
+    unsigned char BitTest;
+ 
+    unsigned char EnableInd;
+    unsigned char CtAlfa;
+
+
+    unsigned int TabMaxAlfa[16];
+    unsigned int TabMinAlfa[16];
+    unsigned    int    CtDif;
+    unsigned    char    EnableDinDP;
+    unsigned    char    EnableDin;
+
+    unsigned    char    CtPlusPM;
+    unsigned    char    CtMinusPM;
+    unsigned    char   PM;
+
+    unsigned    char    CtPlusTM;
+    unsigned    char    CtMinusTM;
+
+    unsigned    int    NNomStatizm;
+
+    const unsigned    int      DPNomMax=850;
+    const unsigned    int      DPNomMin=200;
+    const unsigned    int      DPNomMinStab0=400;
+    const unsigned    int      DPNomMinStab75=350;
+    const unsigned    int      DPNomMinStab100=350;
+    unsigned    int      DPNomMinStab;
+
+    const unsigned    int      NDizRaznos=1750;
+    unsigned    char           RegimStatizm;
+    unsigned    int            NNomConst;
+	const    unsigned    char           Statizm=3;
+    const unsigned    int           DPMax=150;
+    unsigned    int            AdTempMin[4];
+    unsigned    int            AdTempMax[4];
+
+
+    unsigned    int            NDizNew;
+    unsigned    int            NDizOld;
+    unsigned    char            TestO;
+    unsigned    char            TestODin;
+    unsigned    int            NDizNewDin;
+    unsigned    int            NDizOldDin;
+
+	const unsigned    int       DeltaDP=270;//300;//340;//400;//370;//370;//370;
+
+volatile    unsigned    char            RegimEnStab;
+
+    unsigned    char            NDizEnd;
+
+    unsigned    char            CtChangeDP;
+	const unsigned    int       DPNom0=250;
+	unsigned    int         	DPNom;
+
+//	unsigned    int         	TestNDiz;
+	unsigned    int         	NNom;
+
+    unsigned    char            CtNumberInd;
+
+volatile	unsigned    int         	RegimError;
+	unsigned    char         	CtError[16];
+	const unsigned    char         	CtError0[16]={120,2,
+									60,25,60,30,150,25,25,25,90,
+									2,60,200,20,25};
+	unsigned    char         	RegimTime;
+	unsigned    char         	CtTime[2];
+	const unsigned    char         	CtTime0[2]={6,6};
+
+
+	unsigned    int         	Error;
+	unsigned    char         	TM;
+	unsigned    int         	DP;
+
+    unsigned    char            CtOverLow;
+volatile 	unsigned    int         	ICR1Old;
+    unsigned    int             NDiz;
+    unsigned    long            TDiz;
+volatile    unsigned    int             TDizTemp[16];
+volatile    unsigned    char            CtTDiz;
+
+
+    unsigned    int             RegSOld;
+
+	unsigned    char    CtInd;
+
+
+    unsigned    char             RegimWork;
+
+
+	volatile unsigned char Segment[8];
+	volatile unsigned char CtByteAnod;
+	volatile unsigned char CtSetka;
+
+ 	volatile unsigned    char    MaskaSetka;
+	volatile unsigned    char    OverlowT1;
+
+	unsigned    char    IndData[6];
+
+    const unsigned  char Table[0Xa]={0X3f,0X6,0X5b,0X4f,0X66,
+                                      0X6d,0X7d,0X7,0X7f,0X6f};
+
+	unsigned    char	NumberAd;
+	unsigned    char	NumberAdSlow;
+    unsigned    char	CtAd[4];
+	const unsigned    char	    CtAd0=7;
+
+ 	unsigned    int	AdResult[4];
+
+	volatile 	unsigned    int	RegS;
+	volatile 	unsigned    int	RegSTemp;
+ 	unsigned    char	            Alfa;
+
+    unsigned    char             RegimStab;
+
+ 
+
+    unsigned    char             CtDin;
+       
+    /*============================================*/
+
+	void	ResetErrorLinkRS(void)
+{
+	unsigned char R0;
+	R0=UDR;//UDR1;
+	UCSRA &=0x22;//reset error
+
+
+	CtReceiveRS=CtReceiveRS0;
+}
+ 	void	InitUsart(void)
+	{	
+	unsigned char R0;
+   UCSRA=0;//двойная скорость
+   UCSRA |=1;//only 9bit=1
+   UCSRB=0x1c;//enable transmit 9bit
+   UBRRH=0;
+   UBRRL=103;
+	R0=0x86;
+	UCSRC=R0;
+
+   UCSRB |=0x80;//enable int receive
+   PORTB &=0xfb;//Out Transmit=off
+
+
+	}	
+	void	TransmitUsart(void)
+	{
+	unsigned int R0;
+
+   PORTB |=0x4;//Out Transmit=on
+   R0=1000;
+   while(R0)
+   --R0;
+     while(!(UCSRA & 0x20))
+   _WDR();
+
+	NumberLinkRS=1;
+	UCSRA |=1;//Receive only 9 bit=1
+   UCSRB |=1;//9 bit=1
+
+    UDR=NumberBlok;//LinkRS;
+	ControlTransmitRS =NumberBlok;
+
+
+
+			
+	}		  
+
+	void	LinkPult(void)
+{
+
+	unsigned char R0;
+	unsigned char R1;
+	unsigned char R2;
+	unsigned char R3;
+	unsigned char R4;
+
+	if(UCSRA &(1<<RXC))
+	{
+
+	R1=UCSRA;
+	R2=UCSRB;
+	R3=UCSRC;
+	R0=UDR;
+	RamReceiveRS[CtReceiveRS]=R0;
+	if(R2 & 2)
+		{
+	NumberReceiveRS=R0;
+	if(NumberBlok>NumberReceiveRS)
+			{
+	R4=NumberBlok-NumberReceiveRS;
+	CtUsart=R4;
+			}
+	else
+			{
+	R4=NumberBlok-NumberReceiveRS;
+	CtUsart=R4+7;
+			}
+
+	ControlReceiveRS =R0;
+	CtReceiveRS=CtReceiveRS0-1;
+	UCSRA &=0xfe;
+	UCSRB &=0xfe;
+	if(NumberReceiveRS==NumberBlok)
+			{
+     while(!(UCSRA & 0x20))
+   _WDR();
+
+    UDR=RegTransmitRS[CtReceiveRS];
+	ControlTransmitRS +=RegTransmitRS[CtReceiveRS];
+			}
+	return;
+		}
+
+	if(R1 & 0x1c)//error
+		{
+
+
+	ResetErrorLinkRS();
+	return;
+		}
+	if(CtReceiveRS)
+		{	
+	ControlReceiveRS +=R0;
+	--CtReceiveRS;
+	if(NumberReceiveRS==NumberBlok)
+			{
+
+     while(!(UCSRA & 0x20))
+   _WDR();
+   if(!CtReceiveRS)
+    UDR=ControlTransmitRS;
+	else
+				{
+    UDR=RegTransmitRS[CtReceiveRS];
+	ControlTransmitRS +=RegTransmitRS[CtReceiveRS];
+				}
+			}
+		}
+	else
+		{
+
+	UCSRA |=1;
+	PORTB &= 0xfb;//Transmit denable
+	if(R0==ControlReceiveRS)
+			{
+
+	CtErrorRS=10;
+	if(NumberReceiveRS ==6)
+				{
+	CtError[14]=CtError0[14];//RegimError &=0xbfff;
+//	Error &=0xbfff;	
+				}
+	if(NumberReceiveRS==6)//(NumberBlok+1))//shu
+					{
+//	RegimError &=0xbfff;
+	Error &=0xbfff;	
+	for(R4=1;R4<=6;++R4)
+	RomReceiveRS[R4]=RamReceiveRS[R4];
+//	Error &=0xbfff;	
+					}
+	R4=NumberReceiveRS;
+	if(R4<=5)
+	++R4;
+	else
+	R4=0;
+	if(R4==NumberBlok)
+	TransmitUsart();
+			}
+
+
+
+		}
+
+	}
+}
+
+
+
+
+
+
+
+    void    ReadKn(void)
+    {
+
+    unsigned    int R0;
+    R0=RegSTemp;
+
+	if(!(PORTD & 0x20))
+		{
+
+    if(bit_is_clear(PINC,PC0))
+    R0 |=1;
+	else
+	R0 &=0xfffe;
+    if(bit_is_clear(PINC,PC5))
+    R0 |=4;
+	else
+	R0 &=0xfffb;
+    if(bit_is_clear(PINC,PC6))
+    R0 |=0x10;
+	else
+	R0 &=0xffef;
+    if(bit_is_clear(PINC,PC7))
+    R0 |=0x1000;
+	else
+	R0 &=0xefff;
+    if(bit_is_clear(PINB,PB0))
+    R0 |=0x2000;
+	else
+	R0 &=0xdfff;
+		}
+	else if(!(PORTD & 0x80))
+		{
+
+    if(bit_is_clear(PINC,PC0))
+    R0 |=2;
+	else
+	R0 &=0xfffd;
+    if(bit_is_clear(PINC,PC5))
+    R0 |=8;
+	else
+	R0 &=0xfff7;
+    if(bit_is_clear(PINC,PC6))
+    R0 |=0x20;
+	else
+	R0 &=0xffdf;
+    if(bit_is_clear(PINC,PC7))
+    R0 |=0x40;
+	else
+	R0 &=0xffbf;
+		}
+
+    if(bit_is_clear(PINA,PA4))
+    R0 |= 0x80;
+	else
+	R0 &=0xff7f;
+    if(bit_is_clear(PINA,PA5))
+    R0 |= 0x100;
+	else
+	R0 &=0xfeff;
+    if(bit_is_clear(PINA,PA6))
+    R0 |= 0x200;
+	else
+	R0 &=0xfdff;
+    if(bit_is_clear(PINA,PA7))
+    R0 |= 0x400;
+	else
+	R0 &=0xfbff;
+    if(bit_is_clear(PINA,PA2))
+    R0 |= 0x800;
+	else
+	R0 &=0xf7ff;
+
+    if(R0==RegSTemp)
+		{
+
+	if(!(R0 & 0x20))//~MU
+	R0 &=0xf3ff;
+    RegS=R0;
+		}
+
+    RegSTemp=R0;
+
+
+    } 
+
+ 	void		DecSegm( unsigned int Arg0)
+    {
+     unsigned int	Arg1;
+
+	if(Arg0>9999)
+	Arg0=9999;
+
+	Arg1=0;
+
+	while(Arg0>=1000)
+		{
+	Arg0=Arg0-1000;
+	++Arg1;
+		}
+
+	IndData[3]=Arg1;
+	Arg1=0;
+
+	while(Arg0>=100)
+		{
+	Arg0=Arg0-100;
+	++Arg1;
+		}
+
+	IndData[2]=Arg1;
+	Arg1=0;
+
+	while(Arg0>=10)
+		{
+	Arg0=Arg0-10;
+	++Arg1;
+		}
+
+	IndData[1]=Arg1;
+	IndData[0]=Arg0;	
+    }
+
+    unsigned char    ReadEeprom(unsigned char Arg6)
+	
+    {		 	
+	
+	EEARH=0;
+    EEARL=Arg6;
+	EECR=EECR | (1<<EERE);
+
+	while	(bit_is_set(EECR,EERE))
+    ;
+
+	return EEDR;
+    }
+
+
+
+
+    unsigned int    ReadEepromWord(unsigned char Arg6)
+	
+    {
+    unsigned int Arg7;
+    Arg7=ReadEeprom(Arg6+1);		 	
+    Arg7=Arg7<<8;
+    Arg7=Arg7 | ReadEeprom(Arg6);   	
+   	return Arg7;
+    }
+
+
+
+    void InitAd   (void)
+    {
+    ADMUX=0xc0;
+ 	CtAd[0]=CtAd0;
+ 	CtAd[3]=CtAd0;
+	NumberAdSlow=0;
+	NumberAd=0;
+	ADCSRA=0;
+	ADCSRA |=(1<<ADEN);/*enable AD*/
+	ADCSRA |=(1<<ADPS2);
+    ADCSRA |=(1<<ADPS1);
+
+	ADCSRA |=(1<<ADPS0); /*128*/	 		
+	ADCSRA |=(1<<ADIE);/* enable interrupt*/
+    ADCSRA |=(1<<ADSC);/* Start*/
+    }
+
+	void CalcTM(void)
+	{
+	unsigned long R0;
+	unsigned int R1;
+	R0=AdResult[0];
+	R0 *=URef;
+	R0 >>=8;
+	R1=R0;
+	if(R1<400)
+	RegimError |=0x100;
+	else if(R1>950)
+	RegimError |=0x100;
+	else
+	RegimError &=0xfeff;
+	if(R1>=535)
+	R1=R1-535;
+	else
+	R1=0;
+	R0=R1;
+	R0 *=108;
+	R0 >>=8;
+	R1=R0;
+	if(R1>TM)
+		{
+	CtMinusTM=255;
+
+	if(CtPlusTM)
+	--CtPlusTM;
+	else
+			{
+	++TM;
+	CtPlusTM=2;
+			}
+		}
+	else if(R1<TM)
+		{
+	CtPlusTM=255;
+
+	if(CtMinusTM)
+	--CtMinusTM;
+	else
+			{
+	CtMinusTM=2;
+	--TM;
+			}
+		}
+							
+	}		
+	
+	void CalcPM(void)
+	{
+	unsigned int R0;
+	unsigned int R1;
+	if(AdResult[3]>=900)
+	RegimError |=0x200;
+	else if(AdResult[3]<=100)
+	RegimError |=0x200;
+	else
+	RegimError &=0xfdff;
+	if(AdResult[3]>=152)
+	R0=AdResult[3]-152;
+	else
+	R0=0;
+	R0=R0/6;
+	R1=R0;
+	if(R1>PM)
+		{
+	CtMinusPM=200;
+
+	if(CtPlusPM)
+	--CtPlusPM;
+	else
+			{
+	++PM;
+	CtPlusPM=2;
+			}
+		}
+	else if(R1<PM)
+		{
+	CtPlusPM=200;
+
+	if(CtMinusPM)
+	--CtMinusPM;
+	else
+			{
+	CtMinusPM=2;
+	--PM;
+			}
+		}
+							
+	}		
+	
+	
+   void IndicatorSegment  (void)
+    {
+	Segment[0]=Table[IndData[3]];
+	Segment[1]=Table[IndData[2]];	
+	Segment[2]=Table[IndData[1]];
+	Segment[3]=Table[IndData[0]];
+	}	
+	
+   void IndicatorTM  (void)
+    {
+	unsigned int R0;
+//	if(TM>=50)
+		{
+//	R0=TM -50;			
+	DecSegm(NumberBlok);//R0);
+	IndicatorSegment();
+
+		}
+/*	else
+		{
+	R0=50-TM;			
+	DecSegm(R0);
+	IndicatorSegment();
+	Segment[1]=0x40;
+		}*/
+	Segment[0]=0x63;		
+								
+	}			
+
+
+   void IndicatorPM  (void)
+    {
+	DecSegm(NumberReceiveRS);//CtError[14]);//Error & 0xff);//PM);
+	IndicatorSegment();
+	Segment[0]=0x73;
+	Segment[2]=Table[IndData[1]] | 0x80;
+	}
+	
+
+
+
+   void IndicatorNDiz  (void)
+    {
+
+	DecSegm(Error>>8);//NDiz);
+	IndicatorSegment();
+				
+	}
+
+	
+
+
+
+
+  void IndicatorError  (void)
+    {
+	unsigned int R0;
+	Segment[1]=0x40;
+	Segment[2]=0x3f;
+
+	R0=Error;
+	if(R0 & 0x8862)//Raznos,PM,TM,TB
+		{
+	Segment[0]=0x77;//A
+	if(R0 & 0x802)
+	Segment[3]=0x6;//1 Raznos
+	else if(R0 & 0x8000)
+	Segment[3]=0x5b;//2	TOG
+	else if(R0 & 0x40)//PM<1
+	Segment[3]=0x4f;//3	
+	else if(R0 & 0x20)//TM
+	Segment[3]=0x66;//4	
+		}
+	else if(R0 & 0x470d)//RS,DP,DPM,DT,DN,No Stop
+		{
+	Segment[0]=0x76;//H
+	if(R0 & 0x100)//DT
+	Segment[3]=0x6;//1
+	else if(R0 & 0x200)//DPM
+	Segment[3]=0x5b;//2	
+	else if(R0 & 0x404)//DP
+	Segment[3]=0x4f;//3
+	else if(R0 & 0x4000)//RS
+	Segment[3]=0x66;//4		
+	else if(R0 & 0x1)//No Stop
+	Segment[3]=0x6d;//5	
+	else if(R0 & 0x8)//DNDiz
+	Segment[3]=0x7d;//6			
+		}
+	else if(R0 & 0x3090)//YrB,UAB,BK,DZBF
+		{
+	Segment[0]=0x39;//C				
+	if(R0 & 0x2000)//YrB
+	Segment[3]=0x6;//1		
+	else if(R0 & 0x10)//DZBF
+	Segment[3]=0x5b;//2	
+	else if(R0 & 0x1000)//UAB
+	Segment[3]=0x4f;//3	
+	else if(R0 & 0x80)//BK
+	Segment[3]=0x66;//4	
+	
+		}					
+	}
+	
+	
+
+ 
+
+    void ControlReika(void)
+    {
+
+	unsigned int R0;
+	unsigned int R1;
+	R0=DPNom;
+	R0 >>=6;
+
+	if(RegimStop)
+		{
+	PORTD &=0xf7;
+	Alfa=0xff;
+	DPNom=DPNomMax;
+		}
+	else 
+		{
+/*	if((DP<=(DPNom-80)) && (TM>70))
+			{
+	PORTD |=0x8;
+	Alfa=135;
+			}
+
+
+	else*/ if(DP<=(DPNom-50))
+			{
+	PORTD &=0xf7;
+	Alfa=175;
+//	CtAlfa=5;
+			}
+	else if(DP>=(DPNom+50))
+			{
+	Alfa=135;//90
+	PORTD &=0xf7;
+//	CtAlfa=10;
+			}		
+	else if(DP>=(DPNom))
+			{
+	PORTD &=0xf7;
+	R1=TabMinAlfa[R0];
+	Alfa=R1;//200;
+//	CtAlfa=20;
+			}
+	else	if(DP<(DPNom))
+			{
+	R1=TabMaxAlfa[R0];
+	Alfa=R1;//254;
+	PORTD &=0xf7;
+//	CtAlfa=30;
+			}
+
+		}
+
+//	Alfa=150;
+	_CLI();
+
+	OCR0=Alfa;
+	_SEI();
+    }
+    void StabNDiz(void)
+    {
+	int R0;
+	int R1;
+
+
+
+	R1=NDizNew-NDizOld;
+
+	R0=NDiz-NNom;
+
+
+	if(abs(R1)>40)
+	R1=R1<<1;
+
+//	else if(abs(R1)>30)
+//	R1=R1<<2;
+
+
+	if(abs(R0)>30)
+	R0=R0>>1;
+
+	else
+	R0=R0>>2;
+
+	R1 +=R0;
+
+	DPNom +=R1;
+
+
+	if(DPNom>DPNomMax)//900 prov
+	DPNom=DPNomMax;
+	if(DPNom<DPNomMinStab)
+	DPNom=DPNomMinStab;
+
+	
+	}
+    void StabNDizDin(void)
+    {
+
+	volatile	unsigned int R4;
+	unsigned int R5;
+	
+
+	if((DP<DPNomMinStab75)||((DPNomMinStab75-DP)<30))
+	DPNom=400;
+
+	else if(NDizNewDin>=NDizOldDin)//++
+			{
+	R4=NDizNewDin-NDizOldDin;
+	if(NDizNew>=NNom)
+				{
+	R5=NDizNew-NNom;
+	if((R4>25)&&(R5>15)&&(!CtDif))
+
+					{
+	DPNom=DPNomMax;
+	CtDif=500;
+					}
+				}
+			}
+
+	else
+			{
+	R4=NDizOldDin-NDizNewDin;//--
+	if(NDizNew<NNom)
+				{
+	R5=NNom-NDizNew;
+	if((R4>20)&&(R5>15)&&(!CtDif))
+					{
+	DPNom=DPNomMinStab100;
+	DPNomMinStab=DPNomMinStab100;
+	CtDif=500;
+					}
+
+
+				}
+			}
+										
+	}
+
+    void    AccountNDiz(void)
+    {
+    unsigned char R0;
+    unsigned long R1;
+    unsigned long R2;
+    unsigned int R3[16];
+    for(R0=0;R0<=15;++R0)
+	R3[R0]=TDizTemp[R0];
+
+
+
+	if(!CtOverLow)
+	NDiz=0;
+	else
+	{
+    TDiz=0;
+	if(R3[0]>(R3[1]+1000))
+		{
+	if(R3[0]>(R3[15]+1000))
+	R3[0]=R3[1];
+		}
+	if(R3[0]<(R3[1]-1000))
+		{
+	if(R3[0]<(R3[15]-1000))
+	R3[0]=R3[1];
+		}
+
+	if(R3[15]>(R3[14]+1000))
+		{
+	if(R3[15]>(R3[0]+1000))
+	R3[15]=R3[0];
+		}
+	if(R3[15]<(R3[14]-1000))
+		{
+	if(R3[15]<(R3[0]-1000))
+	R3[15]=R3[0];
+		}
+    for(R0=1;R0<=14;++R0)
+		{
+		if(R3[R0]>(R3[R0+1]+1000))
+			{
+	if(R3[R0]>(R3[R0-1]+1000))
+	R3[R0]=R3[R0+1];                                   
+		    }
+		if(R3[R0]<(R3[R0+1]-1000))
+			{
+	if(R3[R0]<(R3[R0-1]-1000))
+	R3[R0]=R3[R0+1];                                   
+		    }
+
+		}
+    for(R0=0;R0<=15;++R0)
+	{
+    TDiz +=R3[R0];
+	_WDR();
+	}
+	R2=TDiz>>4;
+
+//	R1=7272727/R2;
+	R1=7682458/R2;
+	NDiz=R1;
+
+                                   
+    }
+	}
+    void ChangeCtNumberInd(void)
+{
+
+    if((RegS & 0x200) && (!(RegSOld & 0x200)))
+		{
+    --CtNumberInd;
+
+		}
+
+
+	if(CtNumberInd>2)
+	CtNumberInd=2;
+
+
+
+
+
+}
+
+
+
+	
+    void ChangeNNomConst(void)
+{
+
+    if((RegS & 0x80)&&(!(RegSOld & 0x80))) 
+		{
+    ++NNomConst;
+
+		}
+    else if((RegS & 0x100)&&(!(RegSOld & 0x100)))
+		{
+    --NNomConst;
+
+		}
+	if(NNomConst>1575)
+	NNomConst=1575;
+	if(NNomConst<1425)
+	NNomConst=1425;
+ 
+}
+
+
+    void ChangeRegimStatizm(void)
+{
+
+    if((RegS & 0x400)&&(!(RegSOld & 0x400))) 
+		{
+	if(RegimStatizm)
+	RegimStatizm=0;
+	else
+	RegimStatizm=1;
+
+		}
+
+ 
+}
+    void AccountNNomStatizm(void)
+{
+	unsigned int R0;
+	unsigned int R1;
+	unsigned int R2;
+	R2=DPStart-210;
+	if(DPNom<=R2)
+	R0=R2-DPNom;//Nom;
+	else
+	R0=0;
+	R0>>=2;
+	R1=(NNomConst+45)>>3;
+	R1=R1*R0;
+	R1 /=156;
+	NNomStatizm=(NNomConst+45)-R1;
+	NNomStatizm -=10;
+}
+
+
+
+
+
+
+
+	void	ControlRBS(void)
+	{
+
+	if(NDiz>400)
+		{
+	RegimTime |=1;
+	if(!CtTime[0])
+	PORTC |=4;//CT=off
+		}
+
+	else
+		{
+	PORTC &=0xfb;//CT enable
+	RegimTime &=0xfe;			
+		}
+	}
+
+
+	void	SetErrorCT(void)
+	{
+
+	if((!(RegS & 4))&&(NDiz<120))
+	RegimError |=8;
+	else
+	RegimError &=0xfff7;
+
+	}
+
+	void	SetErrorDP(void)
+	{
+	unsigned int R0;
+//	if(DP>=DPNom)
+//	R0=DP-DPNom;
+//	else
+//	R0=DPNom-DP;
+	R0=abs(DP-DPNom);
+		{
+	 if((R0>200)&&(Alfa<200))
+	RegimError |=4;
+	else
+	RegimError &=0xfffb;
+		}
+
+	}	
+    void    IndicatorWork(void)
+    {
+
+	if(!CtInd)
+		{
+
+
+	CtInd=100;
+
+		{
+	switch(CtNumberInd)
+			{
+
+	case 0:	IndicatorNDiz();
+	break;
+	case 1:	IndicatorTM();
+	break;
+	case 2:IndicatorPM();
+	break;
+
+	default:
+	
+	 break;
+			}
+		}			  
+		}
+			  
+	}
+
+
+
+
+	void	SetRegimWork(void)
+	{
+	unsigned int R0;
+	unsigned int R1;
+
+	R1=Error & 0xbfff;
+
+	R1 &=0xefcf;
+	if(RomReceiveRS[5] & 0x10)//blokirovka
+	R1 &=0x2c9f;
+
+	if((RegimWork==1)||(RegimWork==2))
+		{
+	if(!R1) 
+	ControlRBS();
+	else
+	PORTC |=0x4;
+		}
+	else
+	PORTC |=0x4;
+	switch(RegimWork)
+		{
+	case 0:
+// wait Kn Pusk	
+	PORTC |=0xc;//RBS Starter denable Moto=off
+	if(R1)
+			{
+		RegimWork=5;
+		break;
+			}
+	switch(BitTest)	
+		{
+	case 0:
+	if(!RegimStop)
+		{		
+	if(Alfa>135) 
+			{
+	PORTC &=0xe3;//RGL=on
+	_WDR();
+	if(DP<(DPStart-700))
+	RegimError &=0xfbff;
+	else
+	RegimError |=0x400;
+	if(CtTest)
+	DPOld=DP;
+	if((!CtChangeAlfa)&&(NDiz<200))
+				{
+	CtChangeAlfa=10;
+	--Alfa;
+
+				}
+
+
+	if(DP<DPOld)
+				{
+	if((DPOld-DP)>=10)
+					{
+
+	DPOld=DP;
+	R0=DP>>6;
+	TabMinAlfa[R0]=Alfa;
+					}
+				}				
+			}
+	else if(DP<(DPStart-700))
+	BitTest=1;
+		}
+	break;
+
+	case 1:
+	PORTC |=0xc;
+	 if(Alfa<175)
+			{
+	_WDR();
+
+
+	if(!CtChangeAlfa)
+				{
+	CtChangeAlfa=10;
+	++Alfa;
+				}
+
+
+
+	if(DP>DPOld)
+				{
+	if((DP-DPOld)>=10)
+					{
+	RegimError &=0xfbff;
+	DPOld=DP;
+	R0=DP>>6;
+	TabMaxAlfa[R0]=Alfa;
+					}
+				}				
+
+			}
+	else
+			{
+	BitTest=2;
+//	CtDP=0;
+			}
+	break;
+	
+	case 2:
+	if(DP>400)
+	RegimDP=0;
+
+	if(RegimDP<30)
+			{
+
+	Alfa=135;
+
+			}
+	else
+			{
+
+	BitTest=3;
+//	CtDP=0;
+			}
+	break;
+
+	case 3:
+	if(DP<(DPStart-100))
+			{
+//	PORTD |=8;
+	Alfa=255;//135;
+//	if(CtDP>20)
+//	Error |=0x400;
+
+			}
+	else
+	BitTest=4;
+	break;
+
+	case 4:
+	PORTD &=0xf7;
+	Alfa=255;
+	PORTC |=0x10;//RGL=off
+
+//	UABStart=UABOld;
+	if((!RegimStop) &&(!(R1 & 0xffef)) &&(!CtTime[1]))
+	RegimWork=1;
+	break;
+
+	default:break;
+		}
+
+	RegimTime |=2;
+	_CLI();
+	OCR0=Alfa;
+	_SEI();
+
+
+	break;
+	
+	
+	case 1:
+
+			SetErrorCT();
+	if((!(RegS & 4)) && (NDiz>150))
+				{
+	PORTC &=0xef;//RGL=on
+			RegimWork=2;
+			DPNom=DPNom0;
+			RegimTime &=0xfd;
+			NNom=1000;
+				}
+
+
+
+
+
+			break;		
+
+	case 2:
+//Stab DP
+
+//			SetErrorDP();
+
+
+			if(R1)
+			{
+
+			RegimWork=5;
+
+			}
+		
+			if(RegimStop)
+			RegimWork=4;
+
+
+
+
+			 if((NDiz>450)&&(NDizOld>450))
+
+				{
+			NNomConst=1500;
+			RegimWork=3;
+			DPNom=DPNom0+DeltaDP;
+			TestO=0;
+
+				}
+			else if(NDiz>450)
+				{
+
+
+			DPNom=DPNom0+DeltaDP;
+				}
+			else
+				{
+//			DPNom=DPNom0;
+			NNom=1400;
+				}
+
+			if(!TestO)
+				{
+			NDizOld=NDizNew;
+			NDizNew=NDiz;
+
+			TestO=10;
+				}
+
+
+
+			break;
+	case 3:
+//Stab NDiz
+			if(NDiz<400)
+			RegimError |=0x4;
+			else
+			RegimError &=0xfffb;
+			if(PM<10)
+			RegimError |=0x40;
+			else
+			RegimError &=0xffbf;
+
+			PORTC &=0xf7;//moto=on	
+
+
+
+			if(R1 & 0xfcf)
+			{
+			RegimWork=5;
+			}
+										
+			if(RegimStop)
+			RegimWork=4;
+			else
+			{
+			if(!TestO)
+				{
+					
+			if(NNom<NNomStatizm)
+			NNom +=1;
+			else if(NNom>NNomStatizm)
+			--NNom;
+			NDizOld=NDizNew;
+			NDizNew=NDiz;
+
+			StabNDiz();
+
+
+			TestO=15;
+				}
+			if(!TestODin)
+				{
+
+					
+
+			NDizOldDin=NDizNewDin;
+			NDizNewDin=NDiz;
+			if(TM>70)
+			StabNDizDin();
+			TestODin=6;
+				}
+			}
+			RegimTime |=2;
+			break;
+
+
+
+
+	case 4:
+//Ostanov
+			Alfa=0xff;
+			DPNom=DPNomMax;
+			SetErrorDP();
+	_CLI();
+	OCR0=Alfa;
+	_SEI();
+
+			PORTC |=0x10;//RGL=off
+
+			RegimTime &=0xfd;
+			CtTime[1]=CtTime0[1];
+
+			if(NDiz<200)
+				{
+
+			RegimWork=0;
+			RegimError &=0xfffe;
+				}
+			else
+			RegimError |=1;
+
+			break;
+	case 5:
+//Raznos
+
+
+			Alfa=0xff;
+
+	_CLI();
+	OCR0=Alfa;
+	_SEI();
+			DPNom=DPNomMax;
+			SetErrorDP();
+
+			PORTC |=0x10;//RGL=off
+
+			if(NDiz<200)
+			RegimWork=0;
+			else
+			RegimError |=1;
+			if(R1 )
+			{
+
+			if(NDiz<200)
+				{
+			CtTime[1]=CtTime0[1];
+			RegimTime &=0xfd;
+			RegimWork=0;
+				}
+			}
+
+			break;
+
+	default: break;
+		}
+	}
+
+			
+	void	SetError(void)
+	{
+	unsigned char R0;
+	for(R0=0;R0<=15;++R0)
+		{
+	if(!CtError[R0])
+	Error |=(1<<R0);
+		}
+
+	}
+	void	ClearError(void)
+	{
+	unsigned char R0;
+	for(R0=0;R0<=15;++R0)
+	CtError[R0]=CtError0[R0];
+	Error=0;
+	RegimError=0;
+
+	}
+	void	LoadTabAlfa(void)
+	{												     						    
+	unsigned char R0;
+	for(R0=0;R0<=15;++R0)
+		{
+	TabMaxAlfa[R0]=170;
+	TabMinAlfa[R0]=140;
+		}
+	}	
+	void ControlStop(void)
+	{
+	if(RegS & 0x20)//MU
+		{		
+	
+	if(RegS & 0x800)
+	RegimStop=0xff;
+	else if(!(RegS & 8))	
+	RegimStop=0xff;		
+	else
+	RegimStop=0;
+		}
+	else
+		{
+	if(RomReceiveRS[1] & 1)
+	RegimStop=0;
+	else
+	RegimStop=0xff;
+		}
+	}
+
+	void SetFromShu(void)
+	{
+	unsigned int R2;		
+			R2=RomReceiveRS[3];
+			R2 <<=8;
+			R2 |=RomReceiveRS[2];
+			if(R2<1425)
+			R2=1425;
+			if(R2>1575)
+			R2=1575;
+			NNomConst=R2;
+
+
+			if(RomReceiveRS[1] & 8)
+			RegimStatizm=1;
+			else
+			RegimStatizm=0;	
+	}
+	void	SetRegTransmit(void)
+	{
+
+	
+	RegTransmitRS[2]=NDiz;
+	RegTransmitRS[3]=NDiz>>8;
+	RegTransmitRS[4]=Error;//RegS;//NDiz>>8;
+
+	RegTransmitRS[5]=Error>>8;
+	RegTransmitRS[6]=TM;
+	}																		     						    
+/*++++++++++++++++++++++++++++++++++++++++++*/
+
+
+    int main(void)
+    {
+
+	DDRA=0;
+	PORTA=0xf4;
+    DDRB=0xee;
+	PORTB |= 0xf3;// Control UAB
+
+    DDRC=0x1e;
+    PORTC =0xff;
+
+
+    DDRD=0xba;
+    PORTD=0xef;/*Reset=on*/
+
+//  INIT SPI
+    SPSR=0;//f/64
+	SPCR=0x72;
+	SPCR |=0x80;//enable Int SPI
+//INIT USART
+	InitUsart();
+
+    MCUCR=MCUCR | 2;// Log1>0 Int0
+    GICR |=0x40;//Enable INT0
+    TCCR1A=0;//0x82;
+    TCCR1B=0xc1;
+	Alfa=0xff;
+	DPNom=DPNomMax;
+
+    TIMSK=TIMSK | 0x20;//enable Int capture1 
+
+    TIMSK=TIMSK | 0x4;//enable Int overlowT1 
+
+		
+    /*Interrupt1*/
+//    MCUCR=0x8;// Log1>0 Int1
+
+ 
+//    GICR |=(1<<INT1);/*Enable INT1*/
+
+ 
+   	/*Timer0*/
+ 	TCCR0=0x61;//0x61;//1;//1;
+	OCR0=0xe0;
+//    TIMSK |=1;/*Enable Int Overlow Timer0*/
+
+   	/*Timer2*/
+ 	TCCR2=0x4;
+    TIMSK |=(1<<TOIE2);/*Enable Int Overlow Timer2*/
+    InitAd();
+
+
+
+
+
+
+
+
+	CtSetka=0;
+
+
+ 
+
+	URef=ReadEepromWord(8);
+
+
+	PORTD |=0x10;//Reset=off
+
+
+
+    _SEI();
+
+
+//    ReadKn();	
+				
+
+
+ 	RegimWork=0;
+	NNom=1400;//1420;
+
+	ClearError();
+
+    CtTDiz=15;
+
+
+
+	NNomConst=1500;
+
+	RegimStatizm=0;
+
+
+
+	PORTD &=0xf7;
+
+	CtTest=100;
+	BitTest=0;
+	PM=0;
+	TM=25;
+
+	DPNom=DPNomMax;
+	DPNomMinStab=DPNomMinStab0;
+	LoadTabAlfa();
+	Alfa=180;
+	CtStart=200;
+	CtErrorRS=NumberBlok+12;
+
+	_CLI();
+	OCR0=Alfa;
+	_SEI();
+//	CtDP=0;
+  /*Work program*/     	 
+    while(1)
+    {
+    _WDR();
+	if(CtStart)
+		{
+//	if(RegS & 0x2000)
+//	NumberBlok=2;
+//	else
+	NumberBlok=2;
+	DPStart=DP;
+		}
+	ControlStop();
+	SetRegTransmit();
+	if(RegS & 0x1)
+	RegimTime |=0x4;//TM
+	if(!(RegS & 0x40))
+	RegimError |=0x80;//BK SU
+	else 
+	RegimError &=0xff7f;
+	if(RegS & 0x10)
+	RegimError |=0x10;//DZVF
+	else
+	RegimError &=0xffef;
+	if(RegS & 0x1000)
+	RegimError |=0x2000;//UOG
+	else
+	RegimError &=0xdfff;
+
+
+			if(NDiz>NDizRaznos)
+			RegimError |=2;
+			else
+			RegimError &=0xfffd;
+			if(NDiz>(NDizRaznos-50))
+			RegimError |=0x800;
+			else
+			RegimError &=0xf7ff;
+	if(((RegS & 0x80) && (RegS & 0x100))||(RomReceiveRS[5] & 4))
+	ClearError();
+	SetError();
+	if(!(RegS & 0x40))
+	PORTC |=0x2;//SU=off
+	else if(Error & 3)
+	PORTC &=0xfd;//SU=on
+
+	CalcPM();
+
+
+
+	CalcTM();
+
+	if(NDizEnd)
+		{
+	AccountNDiz();
+	NDizEnd=0;
+		}
+
+
+
+
+	if(UABOld<60)
+	RegimError |=0x1000;
+	else
+	RegimError &=0xefff;
+
+
+	if(RegS & 1)//ATM
+	RegimError |=0x20;
+	else
+	RegimError &=0xffdf;
+	if(TM>155)//105gr
+	RegimError |=0x8000;
+	else
+	RegimError &=0x7fff;
+	if(RegimStatizm)
+	Segment[4] |=8;
+	else
+	Segment[4] &=0xf7;
+
+
+
+//	if(Error)
+//	IndicatorError();
+//	else
+	IndicatorWork();
+	SetRegimWork();
+
+
+	if(RegS & 0x20)//MU
+		{
+//	Error &=0xbfff;				
+	if(!CtNumberInd)
+	ChangeNNomConst();
+	ChangeRegimStatizm();
+		}
+	else//SHU
+	SetFromShu();
+
+    ChangeCtNumberInd();
+	RegSOld=RegS;
+
+
+	if(RegimStatizm)
+	AccountNNomStatizm();
+	else
+	NNomStatizm=NNomConst;
+	}
+
+}
+
+
+
+
+
+SIGNAL(SIG_ADC)
+{
+    unsigned int RegInt0;
+
+    RegInt0=ADC;
+
+	if(NumberAd ==1)
+	DP=RegInt0;
+	if(RegimWork)
+ 	ControlReika();
+
+	RegimEnStab=0;
+	if(NumberAd !=1)
+	{
+	if(CtAd[NumberAd])
+		{
+	--CtAd[NumberAd];
+	if(CtAd[NumberAd]<=CtAd0)
+			{  	
+	if(RegInt0<AdTempMin[NumberAd])
+	AdTempMin[NumberAd]=RegInt0;
+	if(RegInt0>AdTempMax[NumberAd])
+	AdTempMax[NumberAd]=RegInt0;
+			}
+		}
+	else
+		{
+	 AdResult[NumberAd]=(AdTempMax[NumberAd]+AdTempMin[NumberAd])>>1;
+	 AdTempMin[NumberAd]=0xffff;
+	 AdTempMax[NumberAd]=0;
+	 CtAd[NumberAd]=CtAd0+2;
+
+
+		}
+	NumberAd=1;
+	}
+
+	else if(NumberAd==1)
+	{
+//	AdResult[1]=RegInt0;
+//	DP=RegInt0;
+	if(!NumberAdSlow)
+	NumberAdSlow=3;
+	else
+	NumberAdSlow=0;
+	NumberAd=NumberAdSlow;
+
+	}
+
+	 ADMUX = ADMUX & 0xe0;
+	 ADMUX =ADMUX | NumberAd;
+	 ADCSRA |=(1<<ADSC);
+ 	
+}
+
+
+
+ SIGNAL(SIG_OVERFLOW2)/*128mks*/
+{
+	TCNT2=0;
+
+	if(CtChangeDP)
+	--CtChangeDP;
+
+
+
+
+	if(!MaskaSetka)
+	{
+
+	MaskaSetka=1;
+
+
+	}
+	else
+	{
+	MaskaSetka=0;
+
+	if(CtSetka<=3)
+	++CtSetka;
+	else
+	CtSetka=0;
+
+	CtByteAnod=0;
+	SPCR |=0x80;//enable Interrupt
+	PORTB |=2;
+ 	SPDR=Segment[CtSetka];
+
+	}
+}
+
+
+
+
+SIGNAL(SIG_SPI)
+{
+
+	if(!CtByteAnod)
+	{
+	++CtByteAnod;	
+
+	switch(CtSetka)
+		{
+	case 0:SPDR=0xfe;
+	break;
+	case 1:SPDR=0xfd;
+	break;
+	case 2:SPDR=0xfb;
+	break;
+	case 3:SPDR=0xf7;
+	break;
+	case 4:SPDR=0xef;
+	break;
+	case 5:SPDR=0xdf;
+	break;
+	case 6:SPDR=0xbf;
+	break;
+	case 7:SPDR=0x7f;
+	break;
+
+
+
+	default:break;
+
+		}
+
+
+	}
+
+
+	else
+	{
+//	if(EnableInd)
+	PORTB &=0xfd;
+	SPCR &=0x7f;//denable interrupt SPI
+
+	TCNT2=0xfe;
+	TIFR |=0x40;//reset flag
+	TIMSK |=0x40;
+	TCCR2=0x4;
+	MaskaSetka=0;
+	}
+
+}
+
+ SIGNAL(SIG_INPUT_CAPTURE1)
+{
+
+	unsigned int R0;
+//	unsigned int R1;
+//    TIMSK=TIMSK & 0xdf;//denable Int capture1
+	if(((ICR1>=ICR1Old) && (CtOverLow==1))||(!CtOverLow))
+    TDizTemp[CtTDiz]=0xffff;
+
+    else
+    {
+	R0=ICR1;
+    TDizTemp[CtTDiz]=R0-ICR1Old;
+
+
+ 
+    }
+   ICR1Old=ICR1;
+    if(CtTDiz)
+    --CtTDiz;
+    else
+		{
+    CtTDiz=15;
+	NDizEnd=1;
+		}
+    CtOverLow=2;
+
+} 
+ SIGNAL(SIG_OVERFLOW1)/*4.0 Mc*/
+    {
+	unsigned char R0;
+	if((CtStart)&&(!RegimStop))
+	--CtStart;
+//	if(DP<800)
+//	++CtDP;
+	if(DP<400)
+	++RegimDP;
+	if(CtEnableKn)
+	--CtEnableKn;
+	else
+		{
+	CtEnableKn=3;
+
+		}
+	switch(CtEnableKn)
+		{
+
+	case 0:ReadKn();
+
+	break;
+	case 1:	PORTD &=0xdf;
+	PORTD |=0x80;
+	break;
+	case 2:ReadKn();
+	break;
+	case 3:	PORTD &=0x7f;
+	PORTD |=0x20;
+	break;
+
+	default :CtEnableKn=3;
+	break;
+		}
+
+
+
+	UABOld=UABNew;
+	UABNew=0;
+	if(CtChangeAlfa)
+	--CtChangeAlfa;
+	if(CtTest)
+	--CtTest;
+
+
+
+
+	if(CtDif)
+	--CtDif;
+	if(TestO)
+	--TestO;
+	if(TestODin)
+	--TestODin;
+	if(CtInd)
+	--CtInd;
+//	if(CtEnableKn)
+//	--CtEnableKn;
+	if(DelError)
+	--DelError;
+	else
+		{
+	RegimError |=0x4000;
+
+	DelError=8;
+	if(CtUsart)
+	--CtUsart;
+	else
+		{
+//	ErrorLink +=1;
+
+	TransmitUsart();
+	CtUsart=NumberBlok+6;
+		}
+
+	if(CtErrorRS)
+	--CtErrorRS;
+	else
+		{
+	InitUsart();
+	CtErrorRS=NumberBlok+12;
+
+		}
+
+
+    for(R0=0;R0<=15;++R0)
+		    {
+    if(RegimError & (1<<R0))
+ 		       {
+    if(CtError[R0])
+    --CtError[R0];
+ 		       }
+    else
+    CtError[R0]=CtError0[R0];
+
+ 		   }
+    for(R0=0;R0<=1;++R0)
+		    {
+    if(RegimTime & (1<<R0))
+		        {
+    if(CtTime[R0])
+    --CtTime[R0];
+ 		       }
+    else
+    CtTime[R0]=CtTime0[R0];
+
+ 		   }
+		}
+
+    if(CtOverLow)
+    --CtOverLow;
+    else
+	NDiz=0;
+
+    }
+	SIGNAL(SIG_UART_RECV)
+{
+	LinkPult();
+
+}
+SIGNAL(SIG_INTERRUPT0)
+{
+
+	++UABNew;
+	GIFR |=0x40;
+
+}

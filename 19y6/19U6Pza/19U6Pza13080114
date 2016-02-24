@@ -1,0 +1,1781 @@
+ /*
+ bootsz1=on
+Avaria 
+ 
+ 0	I Out
+ 1	U Comparator
+ 2	I Tranzistor
+ 3	Set 
+ 4	Temperatura 
+ 5	I Stab=5A
+ 6	UMax
+ 7	Stab I 
+ 8	Zarjad U<20B after end 
+ 
+ 
+ 
+  */   
+    
+    //Int comparator=on 
+    #include <compat/ina90.h>
+    #include <avr/iom8535.h>
+    #include <avr/interrupt.h>
+    #include <math.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <ctype.h>
+    #include <string.h>
+    #include <avr/pgmspace.h>
+
+	unsigned    char	CtResetAvaria;
+    unsigned    char	Segment6Temp;
+    unsigned    char	RegimEeprom;
+    unsigned    char	Ct85;
+    const unsigned    char	Ct85_0=50;
+
+	volatile unsigned   char    CtIndTemperatura;
+	const unsigned   char    CtIndTemperatura0=4;
+	volatile unsigned   int    RegUst[9];
+	volatile unsigned   char    CtFlash1;
+	const unsigned    int	    U290=290;
+	const unsigned    int	    U230=230;
+	volatile unsigned    char    TimeStart;
+	const unsigned    char	    TimeStart0=3;
+    unsigned    char             CtRegS;
+    unsigned    char             CtZarPodzar;
+    unsigned    char             RegSOld;
+    unsigned    char             RegimInd;
+	unsigned    char    CtInd;
+    unsigned    char    SregTemp;
+    unsigned    int              CtUst;
+    const    unsigned int        CtUst0=20;
+    unsigned    int     Reg3;
+    unsigned    int             CtInom;
+    const   unsigned    int     CtInom0=200;
+    unsigned    char             CtOff;
+    const    unsigned char       CtOff0=40;/* 4 our*/
+    unsigned    char             CtChange;
+    const    unsigned char       CtChange0=10;
+	volatile	unsigned    char	CtRegimTest;
+ 	const  unsigned  char	    CtRegimTest0=20;
+
+	volatile unsigned    char    TimePusk;
+	const unsigned    char	    TimePusk0=3;
+
+	const unsigned    int	    Icr1Temp=400;//20kh;
+	const unsigned    int	    AlfaMin=140;//50;//67;
+    unsigned    char             KoefU;
+    const    unsigned char       KoefUMax=100;
+    const    unsigned char       KoefUMin=20;
+    unsigned int                 UAB;
+    unsigned int                 UABOld;
+    unsigned int                 UNomWork;
+	const    unsigned    int     UNomZar=285;
+    unsigned    int              UNom;
+    const    unsigned int        UNomMax=300;
+    const    unsigned int        UNomMin=240;
+
+    unsigned    char             DeltaU;
+    const    unsigned char       DeltaUMax=130;
+    const    unsigned char       DeltaUMin=1;
+
+    unsigned    char             KoefI;
+    const    unsigned char       KoefIMax=200;
+    const    unsigned char       KoefIMin=1;
+    unsigned    char             DeltaI;
+    const    unsigned char       DeltaIMax=100;
+    const    unsigned char       DeltaIMin=1;
+    unsigned int                 IAB;
+    unsigned int                 IABOld;
+    unsigned int                 INom;
+    const    unsigned int        INomMax=401;
+    const    unsigned int        INomMin=50;
+    unsigned int                 INomWork;
+
+
+    static const    unsigned char       AdrMotoL=0x10;
+    static const    unsigned char       AdrMotoH=0x11;
+    unsigned    char             AdrMotoHH=0x12;
+	unsigned    char	         Regim;
+    unsigned    char             RegimWork;
+    unsigned    char             RegimWorkOld;
+
+    unsigned    char             CtSet;
+	volatile     unsigned    char   CtSetOn;
+    const    unsigned char       CtSet0=156;
+	volatile    const  unsigned   char       CtSetOn0=50;
+    unsigned    char             Set;
+    unsigned    int              CtVT1;
+    const    unsigned int        CtVT10=5;
+
+
+
+    const    unsigned char        CtMig0=61;
+    unsigned    char              CtMig;
+    unsigned int                 INom;
+
+    unsigned int                 INomWork;
+
+
+
+
+    unsigned    long             CtMoto;
+    unsigned    int              CtMotoLow;
+    static const    unsigned int        CtMotoLow0=359;/*360s; */
+
+    unsigned    int              AH;
+
+	register unsigned char R2asm asm("r2");
+	register unsigned char R3asm asm("r3");
+	register unsigned char R0asm asm("r0");
+	register unsigned char R1asm asm("r1");
+	volatile    unsigned char	RegWriteFlash;
+	volatile    unsigned char	CtFlash;
+
+
+
+	volatile unsigned char Segment[8];
+	volatile unsigned char CtByteAnod;
+	volatile unsigned char CtSetka;
+
+ 	volatile unsigned    char    MaskaSetka;
+	volatile unsigned    char    OverlowT1;
+
+
+
+
+    unsigned int CtStart;
+
+
+    unsigned    int    RegWait;
+	unsigned    char    IndData[6];
+
+    const unsigned  char Table[0Xa]={0X3f,0X6,0X5b,0X4f,0X66,
+                                      0X6d,0X7d,0X7,0X7f,0X6f};
+
+	unsigned    char	NumberAd;
+    unsigned    char	CtAd;
+	const unsigned    char	    CtAd0=10;
+	unsigned    int	AdTemp;
+ 	unsigned    int	AdResult[4];
+
+    unsigned    char	MyStatus;
+
+	volatile 	unsigned    char	RegS;
+	volatile 	unsigned    char	RegSTemp;
+ 	unsigned    int	            Alfa;
+
+
+
+ 
+
+    unsigned    int              Temperatura;
+    const    unsigned int        Temperatura70=70;
+    const    unsigned int        Temperatura65=65;
+    unsigned    int             Avaria;
+    unsigned    char             RegimStab;
+
+ 
+ 
+
+       
+    /*============================================*/
+ 
+    unsigned int MaxMin(unsigned int A00,unsigned int A01,
+                        unsigned int A02)
+    {
+    if(A00>A01)
+    A00=A01;
+
+    else if(A00<A02)
+    A00=A02;
+
+    return A00;
+    }
+
+
+
+
+    unsigned   int    ChangeUst(int unsigned Par)   
+    {
+    if(!CtUst)
+        {
+        if(RegS & 2)
+			{
+        ++Par;
+   		 CtUst=CtUst0;
+        	}
+        else   if(RegS & 4)
+			{
+        --Par;
+   		 CtUst=CtUst0;
+        	}
+
+        }
+    return Par;    
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    void    ReadKn(void)
+    {
+
+    unsigned    char Reg2;
+    Reg2=0;
+    if(bit_is_clear(PINC,PC1))
+    Reg2=Reg2 | 1;
+
+    if(bit_is_clear(PINC,PC6))
+    Reg2=Reg2 | 2;
+
+    if(bit_is_clear(PINC,PC2))
+    Reg2=Reg2 | 4;
+
+    if(bit_is_clear(PINC,PC4))
+		{
+    Reg2=Reg2 | 8;
+
+		}
+
+    if(bit_is_set(PINC,PC3))
+    Reg2=Reg2 | 0x10;
+
+    if(bit_is_clear(PIND,PD2))
+    Reg2=Reg2 | 0x20;
+
+    if(bit_is_clear(PIND,PD3))
+    Reg2=Reg2 | 0x40;
+    if(bit_is_clear(PIND,PD1))
+    Reg2=Reg2 | 0x80;
+
+    if(Reg2==RegSTemp)
+    RegS=Reg2;
+    RegSTemp=Reg2;
+
+
+    } 
+void		DecSegm( unsigned int R0)
+    {
+     unsigned int	Arg1;
+     unsigned int	Arg0;
+	 Arg0=R0;
+	if(Arg0>9999)
+	Arg0=9999;
+    Arg1=Arg0/1000;
+	IndData[3]=Arg1;
+    Arg0=Arg0%1000;
+    Arg1=Arg0/100;
+	IndData[2]=Arg1;
+    Arg0=Arg0%100;
+    Arg1=Arg0/10;
+	IndData[1]=Arg1;
+    Arg0=Arg0%10;
+	IndData[0]=Arg0;
+	
+    }
+
+
+ 	void		DecSegmLong( unsigned long Arg0)
+    {
+     unsigned int	Arg1,Arg2;
+	if(Arg0>999999)
+	Arg0=999999;
+
+	Arg1=0;
+
+	while(Arg0>=100000)
+		{
+	Arg0=Arg0-100000;
+	++Arg1;
+		}
+
+	IndData[5]=Arg1;
+	Arg1=0;
+
+	while(Arg0>=10000)
+		{
+	Arg0=Arg0-10000;
+	++Arg1;
+		}
+
+	IndData[4]=Arg1;
+    Arg2=Arg0;
+    DecSegm(Arg2);
+    }
+
+
+
+ 
+
+
+    unsigned char    ReadEeprom(unsigned char Arg6)
+	
+    {		 	
+	
+	EEARH=0;
+    EEARL=Arg6;
+	EECR=EECR | (1<<EERE);
+
+	while	(bit_is_set(EECR,EERE))
+    ;
+
+	return EEDR;
+    }
+    unsigned int    ReadEepromWord(unsigned char Arg6)
+	
+    {
+    unsigned int Arg7;
+    Arg7=ReadEeprom(Arg6+1);		 	
+    Arg7=Arg7<<8;
+    Arg7=Arg7 | ReadEeprom(Arg6);   	
+   	return Arg7;
+    }
+
+     unsigned long    ReadEepromLong(unsigned char Arg6)
+	
+    {
+    unsigned long Arg8;
+    unsigned int   Arg9;
+    Arg8=ReadEeprom(Arg6+2);		 	
+    Arg8=Arg8<<16;
+    Arg9=ReadEeprom(Arg6+1);		 	
+    Arg9=Arg9<<8;
+    Arg8=Arg8 | Arg9;
+    Arg8=Arg8 | ReadEeprom(Arg6);      	
+   	return Arg8;
+    }
+    void    CalcUAB(void)
+    {
+
+	unsigned int R1;
+	unsigned int R0;
+	R0=AdResult[2];
+	R0 =R0/3;
+	R1=R0*KoefU;
+	R1=R1>>7;
+	R1=R0+R1;
+//	R1=R1>>2;
+//	R1=R1*184;//186;
+	UAB=R1;
+
+
+    }
+ 
+     void    CalcIAB(void)
+    {
+	unsigned int R0;
+	unsigned int R1;
+
+	R0=AdResult[0];
+	R0 /=5;
+	R1=R0*KoefI;
+	R1=R1>>6;
+	R1=R0+R1;
+	IAB=R1;
+
+    }
+
+
+    void    StabI(void)
+    {
+
+    if(IAB>(INomWork+2))
+		{
+	if(Alfa)
+	--Alfa;
+		}
+    else if(IAB<(INomWork-2))
+	++Alfa;
+
+ 
+    }
+
+
+void StabU(void)
+{
+	unsigned int R10;
+
+
+	unsigned int R1;//UAB-UNom
+	unsigned char R2;
+
+	R10=UNomWork;
+
+	R1=0;
+	R2=0;
+	if(UAB<(R10-3))
+		{
+	R1=R10-UAB;
+	R2=1;
+		}
+	else if(UAB>(R10+3))
+	R1=UAB-R10;
+
+	if(R1)
+	R1=1;
+	else
+	R1=0;
+
+
+	switch(R2)
+		{
+
+	case 0:
+	if(UAB>R10)
+			{
+	if(Alfa>=R1)
+	Alfa=Alfa-R1;
+	else
+	Alfa=0;
+			}
+	break;
+
+	case 1:
+	if(UAB<R10)
+			{
+	if(TimePusk)
+	R1=1;
+	Alfa=Alfa+R1;
+			}
+	break;
+	default:break;
+		}
+
+
+
+}
+
+
+   void    AccountAlfa(void)
+    {
+    unsigned int R0;
+	R0=IAB>>6;
+	R0=UNomWork-R0;
+
+     if(RegimStab==1)/*Stab I*/
+        {
+    if(UAB>(R0+3))
+    RegimStab=0;/* Stab U*/
+        }
+    else if(IAB>(INomWork+4))
+    RegimStab=1;
+
+    if(RegimStab==1)
+    StabI();
+    else
+    StabU();
+	if(Alfa>AlfaMin)
+	Alfa=AlfaMin;
+ 
+    }
+
+
+
+
+ 
+    void InitAd   (void)
+    {
+    ADMUX=0xc0;
+ 	CtAd=CtAd0;
+	NumberAd=0;
+	ADCSRA=0;
+	ADCSRA |=(1<<ADEN);/*enable AD*/
+	ADCSRA |=(1<<ADPS2);
+    ADCSRA |=(1<<ADPS1);
+
+//	ADCSRA |=(1<<ADPS0); /*128*/	 		
+	ADCSRA |=(1<<ADIE);/* enable interrupt*/
+    ADCSRA |=(1<<ADSC);/* Start*/
+    }
+
+	void	CalcTemperatura(void)
+	{
+/* 100gr	0.61k	0bitTab1
+	96		0.74	3
+	90		0.94 	9
+	80		1.25	17
+	76		1.45	22
+	70		1.80	30
+	60		2.52	47		4
+	50		4.06	80		20
+	46		4.5		88		24
+	44		5.07	98		30
+	40		5.8		111		36
+	35		7.25					4				
+	32		8.0	
+	16		15.5	233				29*/
+	
+
+
+
+	unsigned int R0;
+	unsigned int R1;
+	unsigned int R2;
+    const unsigned  char Tab[129]={90,89,88,87,86,85,84,83,82,81,//0
+								  80,79,78,77,76,75,74,73,72,71,//10
+								   70,69,68,67,66,65,64,63,62,61,//20
+								   60,59,58,56,54,52,50,49,48,47,//30
+								   46,45,44,43,42,42,41,40,40,39,//40
+								   38,38,37,37,36,36,36,35,35,35,//50
+								   34,34,34,33,33,33,32,32,32,31,//60
+								   31,31,30,30,30,29,29,29,28,28,//70
+								   28,27,27,27,26,26,26,25,25,25,//80
+								   25,24,24,24,24,23,23,23,23,22,//90
+								   22,22,22,21,21,21,21,20,20,20,//100
+								   20,19,19,18,18,17,17,16,16,15,//110
+								   15,14,13,13,12,11,11,10,10//120
+
+};
+
+	R0=ReadEeprom(1);
+	if(R0>30)
+	R0=10;
+	R1=AdResult[1];
+	R1=R1*R0;
+	R1=R1>>8;
+	R1=AdResult[1]+R1;//2.5B
+	R1=R1>>3;
+	R2=AdResult[3];
+	R2=R2*R0;
+	R2=R2>>8;
+	R2=AdResult[3]+R2;//T
+	R2=R2>>3;
+	R2=R2*125;
+	R2=R2/R1;
+	if(R2>128)
+	R2=128;
+
+	Temperatura=Tab[R2];
+	}
+
+
+	void	LoadAlfa(void)
+	{
+	unsigned int R0;
+	unsigned int R1;
+	while(OCR1B !=Alfa)
+		{
+		_WDR();
+	if(!OverlowT1)
+			{
+	R1=OCR1B;
+	if(R1>Alfa)
+	--R1;
+	else if(R1<Alfa)
+	++R1;
+	R0=Icr1Temp-R1;	 
+    OCR1B=R1;
+    OCR1A=R0;
+	OverlowT1=2;
+			}
+		}
+	}	
+	void	LoadAlfaStart(void)
+	{
+	unsigned int R0;
+
+	R0=Icr1Temp-Alfa;	 
+    OCR1B=Alfa;
+    OCR1A=R0;
+
+	}
+   void InitComparator   (void)
+    {
+    ACSR=ACSR & 0xf7;/*Denable Int Comp*/
+    SFIOR &= 0xf7;
+    ACSR &= 0x30;
+    ACSR &=0xfc;/*1 > 0*/
+    ACSR |=3;
+    ACSR |=8;/*Enable Int*/
+    }
+	
+	
+   void IndicatorTemperatura  (void)
+    {
+	Segment[0]=0x63;
+	Segment[1]=0;		
+	Segment[2]=0;		
+	DecSegm(Temperatura);
+	Segment[3]=Table[IndData[2]];
+	Segment[4]=Table[IndData[1]];	
+	Segment[5]=Table[IndData[0]];	
+	}	
+	
+	
+		
+
+   void IndicatorUAB  (void)
+    {	
+	DecSegm(UABOld);
+	Segment[0]=Table[IndData[2]];
+	Segment[1]=Table[IndData[1]] | 0x80;	
+	Segment[2]=Table[IndData[0]];	
+	}
+
+   void IndicatorUNom  (void)
+    {	
+	DecSegm(UNom);
+	Segment[0]=Table[IndData[2]];
+	Segment[1]=Table[IndData[1]] | 0x80;	
+	Segment[2]=Table[IndData[0]];	
+	}	
+
+   void IndicatorIAB  (void)
+    {	
+	DecSegm(IABOld);
+	Segment[3]=Table[IndData[2]];
+	Segment[4]=Table[IndData[1]] | 0x80;	
+	Segment[5]=Table[IndData[0]];	
+	}
+   void IndicatorINom  (void)
+    {	
+	DecSegm(INom);
+	Segment[3]=Table[IndData[2]];
+	Segment[4]=Table[IndData[1]] | 0x80;	
+	Segment[5]=Table[IndData[0]];	
+	}	
+   void IndicatorAH  (void)
+    {	
+	DecSegm(AH/10);
+	Segment[0]=0x77;//Table[IndData[5]];
+	Segment[1]=0;	
+	Segment[2]=Table[IndData[3]];
+	Segment[3]=Table[IndData[2]];
+	Segment[4]=Table[IndData[1]]|0x80;	
+	Segment[5]=Table[IndData[0]];	
+	}	
+   void IndicatorCtMoto  (void)
+    {	
+	DecSegmLong(CtMoto);
+	Segment[0]=Table[IndData[5]];
+	Segment[1]=Table[IndData[4]];	
+	Segment[2]=Table[IndData[3]];
+	Segment[3]=Table[IndData[2]];
+	Segment[4]=Table[IndData[1]] | 0x80;	
+	Segment[5]=Table[IndData[0]];	
+	}
+	
+
+    void    WriteEeprom(unsigned char Arg4,unsigned char Arg5)
+    {
+    _WDR();
+    while(bit_is_set(EECR,EEWE))
+    ;
+    while(bit_is_set(SPMCR,SPMEN))
+    ;
+
+	EEARL=Arg4;
+	EEARH=0;
+	EEDR=Arg5;
+    SregTemp=SREG;
+    _CLI();
+	EECR |=(1<<EEMWE);
+                       		 
+	EECR |=(1<<EEWE);
+    SREG=SregTemp;				
+    while(bit_is_set(EECR,EEWE))
+    ;
+
+    while(bit_is_set(SPMCR,SPMEN))
+    ;
+}	
+	
+    void    WriteEepromWord(unsigned char  Arg4,unsigned int Arg6)
+	
+{
+    WriteEeprom(Arg4,Arg6);
+    Arg6=Arg6>>8;
+    WriteEeprom((Arg4+1),Arg6);
+}	
+		
+	
+    void    WriteEepromLong(unsigned char  Arg4,unsigned long Arg8)
+	
+{
+    unsigned char    Arg7;
+    Arg7=Arg8;
+    WriteEeprom(Arg4,Arg7);
+    Arg8=Arg8>>8;
+    Arg7=Arg8;
+    WriteEeprom((Arg4+1),Arg7);
+    Arg8=Arg8>>8;
+    Arg7=Arg8;
+    WriteEeprom((Arg4+2),Arg7);
+}	
+		
+   void LoadFromEeprom(void) 
+    {
+
+
+    CtMoto=ReadEepromLong(AdrMotoL);
+	if(CtMoto>999999)
+	CtMoto=0;
+	RegimEeprom=ReadEeprom(0x4);
+	if(RegimEeprom>4)
+	RegimEeprom=0;
+	RegimWork=RegimEeprom;
+
+    }		
+
+         
+
+
+
+
+
+
+
+
+
+    void    IndicatorAvaria(void)
+    {
+    if(Avaria & 4)//I Tranzistor
+        {
+    IndicatorUAB();
+	Segment[3]=0x77;
+	Segment[4]=0;
+	Segment[5]=0;
+        }
+   else if(Avaria & 1)//I Nagr
+        {
+    IndicatorUAB();
+	Segment[3]=0x76;
+	Segment[4]=0;
+	Segment[5]=0;
+        }
+
+
+    else    if(Avaria & 0x40)// UMax
+        {
+	Segment[0]=0x3e;
+	Segment[1]=0x5b;
+	Segment[2]=0;
+	Segment[3]=0;
+	Segment[4]=0;
+	Segment[5]=0;
+        }
+    else    if(Avaria & 0x2)// U Comparator
+        {
+
+	Segment[0]=0x3e;
+	Segment[1]=0x6;
+	Segment[2]=0;
+	Segment[3]=0;
+	Segment[4]=0;
+	Segment[5]=0;
+        }
+     else    if(Avaria & 0xa0)// U<UNom,StabI
+        {
+    IndicatorUAB();
+        if(RegimInd)
+	IndicatorIAB();
+        else
+			{
+	Segment[3]=0;
+	Segment[4]=0;
+	Segment[5]=0;
+
+			}
+ 
+         }
+
+
+ 
+
+   else    if(Avaria & 0x10)// T1
+        {
+	IndicatorTemperatura();
+
+        }
+     else     if(Avaria & 0x108)//set   
+        {
+	Segment[0]=0x3e;
+	Segment[2]=0;
+	Segment[3]=0;
+	Segment[4]=0;
+	Segment[5]=0;
+	if(Avaria & 0x100)
+	Segment[1]=0x3f;
+	else
+	Segment[1]=0x39;
+        }
+
+     }		  
+	  
+	  
+    void    IndicatorWork(void)
+    {
+    if(!CtInd)
+ 	   {
+	Segment6Temp=0;
+    if(RegimInd)
+    RegimInd=0;
+    else
+    RegimInd=1;                   
+    CtInd=50;
+	if((RegimWork<=1)&&(Alfa))
+						{
+	Segment6Temp |=0x12;//zarjad,norma
+				
+						}			
+	else if((RegimWork==4)&&(Alfa))
+						{
+	Segment6Temp |=0x6;
+				
+						}
+  
+    if((RegS & 2)&&(RegS & 4))
+            {
+	if(CtIndTemperatura)
+	IndicatorTemperatura();
+
+        else if(RegimWork<=2) 
+    	IndicatorAH();
+        else
+    	IndicatorCtMoto();
+            }
+			
+			
+				  
+	else if(Regim==21) 
+			{
+	Segment6Temp |=8;
+				
+	IndicatorUAB();
+	Segment[3]=0x3e;
+	Segment[4]=0;
+	Segment[5]=0;					  
+			}
+			
+	else if(Regim==20) 
+			{
+	Segment6Temp |=8;
+				
+	IndicatorIAB();
+	Segment[0]=0x77;
+	Segment[1]=0;
+	Segment[2]=0;					  
+			}			
+	else if(Regim==22) 
+			{
+	Segment6Temp |=1;
+				
+	IndicatorUNom();
+	Segment[3]=0x3e;
+	Segment[4]=0;
+	Segment[5]=0;					  
+			}
+			
+	else if(Regim==23) 
+			{
+	Segment6Temp |=1;
+	if(INom<=400)				
+	IndicatorINom();
+	else
+		{
+	Segment[3]=0x66;
+	Segment[4]=0x3f;
+	Segment[5]=0x37;
+		}
+	Segment[0]=0x77;
+	Segment[1]=0;
+	Segment[2]=0;					  
+			}
+			
+	else if((Regim<20) && (RegS & 4))
+			{
+			
+	IndicatorUNom();
+	Segment[3]=0x3e;
+	Segment[4]=0;
+	Segment[5]=0;			
+					  
+			}			
+	else if((Regim<20) && (RegS & 2))
+			{			
+	if(INom<=400)			
+	IndicatorINom();
+	else
+		{
+	Segment[3]=0x66;
+	Segment[4]=0x3f;
+	Segment[5]=0x37;
+		}
+	Segment[0]=0x77;
+	Segment[1]=0;
+	Segment[2]=0;					  
+			}			
+			
+						
+				  
+	else 
+			{
+	CtIndTemperatura=CtIndTemperatura0;
+	if(Avaria)
+				{
+
+	Segment6Temp |=0x20;
+	IndicatorAvaria();
+				}
+	else
+
+				{
+
+			
+	IndicatorUAB();
+	IndicatorIAB();
+
+		
+		
+
+	
+	
+				}
+			}
+				  
+		}
+			  
+	}
+    void WriteCtMoto(void)
+    {
+    unsigned long Reg0Long;
+    if(CtMoto>999999)
+    CtMoto=0;
+    Reg0Long= ReadEepromLong(AdrMotoL);
+     
+    if(CtMoto != Reg0Long)
+    WriteEepromLong(AdrMotoL,CtMoto);
+    }	
+    void WriteRegimEeprom(void)
+    {
+    unsigned char R0;
+
+    R0= ReadEeprom(4);
+     
+    if(RegimEeprom != R0)
+    WriteEeprom(4,RegimEeprom);
+    }
+    void WriteUNom(void)
+    {
+    unsigned int R0;
+
+    R0= ReadEepromWord(6);
+     
+    if(UNom != R0)
+    WriteEepromWord(6,UNom);
+    }	
+    void WriteINom(void)
+    {
+    unsigned int R0;
+
+    R0= ReadEepromWord(8);
+     
+    if(INom != R0)
+    WriteEepromWord(8,INom);
+    }	
+    void WriteKoefU(void)
+    {
+    unsigned int R0;
+
+    R0= ReadEepromWord(0xa);
+     
+    if(KoefU != R0)
+    WriteEepromWord(0xa,KoefU);
+    }	
+    void WriteKoefI(void)
+    {
+    unsigned int R0;
+
+    R0= ReadEepromWord(0xc);
+     
+    if(KoefI != R0)
+    WriteEepromWord(0xc,KoefI);
+    }
+    void WriteDeltaU(void)
+    {
+    unsigned int R0;
+
+    R0= ReadEepromWord(0x18);
+     
+    if(DeltaU != R0)
+    WriteEepromWord(0x18,DeltaU);
+    }	
+    void WriteDeltaI(void)
+    {
+    unsigned int R0;
+
+    R0= ReadEepromWord(0x1c);
+     
+    if(DeltaI != R0)
+    WriteEepromWord(0x1c,DeltaI);
+    }	
+	
+			
+    void WaitStart(void)
+	{
+	Alfa=0;
+	LoadAlfaStart();
+    LoadFromEeprom();
+    AH=0;/* A*H*/
+
+    CtSetOn=CtSetOn0;
+    CtVT1=CtVT10;
+    Set=0;
+    Avaria=0;/*Set=off*/
+	PORTD |=80;//Reset=off
+
+    TIMSK=TIMSK | 0x10;//enable Int Compare1A
+    CtRegimTest=CtRegimTest0;
+
+	TimePusk=TimePusk0;	
+	TimeStart=TimeStart0;
+	}		     						    
+/*++++++++++++++++++++++++++++++++++++++++++*/
+
+
+    int main(void)
+    {
+
+    DDRB=0xa2;
+	PORTB |= 0xf3;// Control UAB
+
+    DDRC=0xa0;
+    PORTC |=0xff;
+
+    DDRD=0x80;
+    PORTD=0x7f;/*Reset=on*/
+
+//  INIT SPI
+    SPSR=0;//f/64
+	SPCR=0x72;
+	SPCR |=0x80;//enable Int SPI
+
+	ICR1=Icr1Temp;//20KH
+
+    TCCR1A=0xb2;
+    TCCR1B=0x11;
+	Alfa=0;
+	LoadAlfaStart();
+    CtStart=650;//00;
+	while(CtStart--)	_WDR();
+    DDRD=0xb0;
+
+
+		
+    /*Interrupt1*/
+    MCUCR=0x8;// Log1>0 Int1
+
+ 
+    GICR |=(1<<INT1);/*Enable INT1*/
+
+ 
+   	/*Timer0*/
+ 	TCCR0=0x5;
+    TIMSK |=1;/*Enable Int Overlow Timer0*/
+
+   	/*Timer2*/
+ 	TCCR2=0x4;
+    TIMSK |=(1<<TOIE2);/*Enable Int Overlow Timer2*/
+    InitAd();
+    InitComparator();
+	WaitStart();
+	_SEI();
+
+
+    ReadKn();
+
+
+
+	CtSetka=0;
+	Avaria=0;
+	UNom=ReadEepromWord(6);
+	INom=ReadEepromWord(8);
+	KoefU=ReadEepromWord(0xa);
+	KoefI=ReadEepromWord(0xc);
+	DeltaU=ReadEepromWord(0x18);
+	DeltaI=ReadEepromWord(0x1c);
+ 	RegimStab=0; 
+
+    ReadKn();	
+				
+    if((RegS & 7) ==7)
+    Regim=20;
+    else if((RegS & 7) ==6)
+    Regim=22;
+    else
+    Regim=0;
+
+    RegWait=0;
+    while(RegS & 7)
+
+ /*ChangeNumberRegim*/
+    {
+	CtFlash1=2;
+	WaitStart();
+
+
+    if(!RegWait)
+        {
+    _WDR();
+    RegWait=1;
+	Segment[1]=0;
+	Segment[2]=0;
+	Segment[3]=0;
+	Segment[5]=0;
+	TimePusk=TimePusk0;
+    CtRegimTest=CtRegimTest0;
+
+    switch(Regim)
+             {
+ 
+    case 20:
+	Segment[0]=0x3e;
+
+	Segment[6]=8;	
+    Regim=21;
+    break;
+ 
+ 
+    case 21:
+	Segment[0]=0x77;
+
+	Segment[6]=8;
+   Regim=20;
+    break;
+ 
+    case 22:
+	Segment[0]=0x77;
+
+	Segment[6]=1;
+
+    Regim=23;
+    break;
+ 
+    case 23:
+	Segment[0]=0x3e;
+
+	Segment[6]=1;
+    Regim=22;
+    break;
+
+    default:
+    break;
+             }
+        }
+ 
+    _WDR();
+    ReadKn();
+     }	
+							       
+
+
+
+  /*Work program*/     	 
+    while(1)
+    {
+    _WDR();
+
+    UNom=MaxMin(UNom,UNomMax,UNomMin); 
+    RegUst[3]=UNom;
+    INom=MaxMin(INom,INomMax,INomMin);
+    RegUst[2]=INom;
+    KoefU=MaxMin(KoefU,KoefUMax,KoefUMin);
+    RegUst[1]=KoefU;
+    KoefI=MaxMin(KoefI,KoefIMax,KoefIMin);
+    RegUst[6]=KoefI;
+    DeltaU=MaxMin(DeltaU,DeltaUMax,DeltaUMin);
+    RegUst[5]=DeltaU;
+    DeltaI=MaxMin(DeltaI,DeltaIMax,DeltaIMin);
+    RegUst[4]=DeltaI;
+
+	if(!CtFlash1)
+		{
+
+
+	WriteCtMoto();
+	WriteRegimEeprom();
+	WriteUNom();
+	WriteINom();
+	WriteKoefU();
+	WriteKoefI();
+	WriteDeltaU();
+	WriteDeltaI();
+	CtFlash1=2;
+		}		
+
+
+
+	IndicatorWork();
+	 if(RegS & 0x20)
+	 Avaria |=4;//I Tranzistor
+
+	if(RegS & 1)
+        {
+	if(RegimWork==4)
+			{	
+	if(!(RegSOld & 1))
+				{
+	RegimEeprom=0;
+	RegimWork=0;
+	++CtRegS;
+				}
+			}
+	else
+			{	
+	if(!(RegSOld & 1))
+				{
+	RegimEeprom=4;
+	RegimWork=4;
+	++CtRegS;
+				}
+			}
+	RegSOld |=1;	
+		}
+	else if(!CtZarPodzar)
+		{
+	RegSOld &=0xfe;
+	CtZarPodzar=50;
+		}
+
+ 
+
+
+ 
+
+
+    ReadKn();
+
+//Time 30s
+
+   if(RegS & 6)
+    CtRegimTest=CtRegimTest0;
+    if(!CtRegimTest)
+        Regim=0;
+
+
+    if((MyStatus & 1))
+        {
+	if(UAB>UABOld)
+	++UABOld;
+	else if(UAB<UABOld)
+	--UABOld;
+
+	if(IAB>IABOld)
+	++IABOld;
+	else if(IAB<IABOld)
+	--IABOld;
+
+    /*AD=end*/
+  if(RegimWork<=2)
+    {
+    Avaria=Avaria & 0x15f;
+	if(UNomWork<UNomZar)
+	++UNomWork;
+	else
+    UNomWork=UNomZar;
+     INomWork=INom;
+     }
+
+     CalcUAB();
+
+     CalcIAB();
+
+	CalcTemperatura();
+
+
+
+
+
+	if((!(Avaria & 0x15f))&&(!TimeStart)&&(Regim<22))
+
+			{
+
+	AccountAlfa();
+	if(Alfa)
+				{
+	PORTC &=0x7f;
+	Segment6Temp |=2;
+				}
+	else
+				{
+	PORTC |=0x80;
+
+				}
+
+			}
+	else
+			{
+	Alfa=0;
+	PORTC |=0x80;//VT1=off,Norma=off
+	TimePusk=TimePusk0;
+
+			}
+	LoadAlfa();
+
+	MyStatus=0;
+    if(Temperatura>=Temperatura70)
+	 		{
+	 if(Ct85)
+	 --Ct85;
+	 else
+     Avaria=Avaria | 0x10;
+	 		}
+    else
+			{	 
+	if(Ct85<Ct85_0)
+	++Ct85;	 
+     else if(Temperatura<=Temperatura65)
+   Avaria=Avaria & 0x1ef;
+			}
+
+
+
+
+	if(UAB<U290)
+	Avaria &=0x1fd;//Avaria Comp=off
+	if(UAB>230)
+	Avaria &=0xfffe;//Avaria Comp=off
+     switch(RegimWork)
+              {
+    /*I=const*/
+     case 0:
+
+
+     Avaria=Avaria & 0x15f;
+
+    if(RegimStab==1)
+    CtChange=CtChange0;
+     else if(Avaria & 0x58)
+     CtChange=CtChange0;
+     else if(!CtChange)
+                {
+    RegimWork=1;
+    CtChange=CtChange0;
+    CtOff=CtOff0;
+                }
+    break;
+
+   /*U=const*/
+     case 1:
+    
+
+    if(IAB>INomWork/4)
+    CtChange=CtChange0;
+     else if(Avaria & 0x58)
+     CtChange=CtChange0;
+     else if(!CtChange)
+                {
+    RegimWork=2;
+ 
+                }
+    if(!CtOff)
+    RegimWork=2;
+    break;
+
+    /*off*/
+     case 2:
+    if(UAB<=20)
+    Avaria=Avaria | 0x100;
+    else
+    Avaria=Avaria & 0xeff;
+
+    break;
+ 
+
+ 
+
+
+    /*U=Podzar*/
+    case 4:UNomWork=UNom;
+    AH=0;
+   if(!(Avaria & 0x20))
+        {
+
+     if(RegimStab==1)
+            {
+     Avaria=Avaria | 0x80;
+     if(UAB<(UNomWork>>1))
+	            {
+      if(CtInom)
+      --CtInom;
+ 	            }
+     else
+     CtInom=CtInom0;
+     if(!CtInom)
+                {
+     Avaria=Avaria | 0x20;
+     CtInom=CtInom0;
+                }
+            }
+     else
+     Avaria=Avaria & 0x17f;
+        }
+       else
+        {
+        
+     Reg3=UNomWork*50;
+     Reg3=Reg3/INom;
+     if((UAB>Reg3)&&(IAB<INomMin+10))
+            {
+      if(CtInom)
+      --CtInom;
+            }
+     else
+     CtInom=CtInom0;
+     if(!CtInom)
+             {
+     Avaria=Avaria & 0x1df;
+     CtInom=CtInom0;
+            }
+        }
+	if(INom>400)
+	Avaria &=0x1df;
+
+
+
+     if(Avaria & 0x20)
+     INomWork=INomMin;
+
+     else
+     INomWork=INom;
+
+
+    CtChange=CtChange0;
+
+     break;
+
+
+
+
+
+
+   default:break;
+            }
+    if(Regim==22)
+    {
+    UNom=ChangeUst(UNom);      
+
+    Alfa=0;
+
+    }
+
+    else    if(Regim==23)
+    {
+    INom=ChangeUst(INom);
+    Alfa=0;
+
+    }
+    else    if(Regim==21)
+			{
+	if(!(RegS & 0x80))
+    KoefU=ChangeUst(KoefU);
+	else
+    DeltaU=ChangeUst(DeltaU);
+			}
+  
+    else    if(Regim==20)
+			{
+	if(!(RegS & 0x80))
+    KoefI=ChangeUst(KoefI);
+	else
+    DeltaI=ChangeUst(DeltaI);
+
+			}
+
+     MyStatus=MyStatus & 0xfe;
+
+	    }
+	Segment[6]=Segment6Temp;
+
+ 	 }
+}
+
+    SIGNAL(SIG_COMPARATOR)
+    {
+
+	Avaria |=0x2;
+	Alfa=0;
+    OCR1B=0;
+    OCR1A=Icr1Temp; 
+
+    } 
+SIGNAL(SIG_INTERRUPT1)
+{
+	if(!TimePusk)
+	{
+   GICR = GICR & 0x7f;/*Denable INT1*/
+   Avaria=Avaria | 1;/* IAB>IMax*/
+       Alfa=0;
+    OCR1B=0;
+    OCR1A=Icr1Temp;
+
+	}
+}
+
+
+
+SIGNAL(SIG_ADC)
+{
+    unsigned int RegInt0;
+
+    RegInt0=ADC;
+    if(!NumberAd)
+        {
+
+    if(RegInt0>=DeltaI)
+    RegInt0=RegInt0-DeltaI;
+    else
+    RegInt0=0;
+        }
+    else if(NumberAd==2)
+        {
+
+    if(RegInt0>=DeltaU)
+    RegInt0=RegInt0-DeltaU;
+	else
+    RegInt0=0;
+        }
+
+
+
+	if(CtAd)
+	{
+	--CtAd;
+	if(CtAd<=CtAd0)
+		{  	
+	if(RegInt0>AdTemp)
+	AdTemp=RegInt0;
+		}
+	}
+	else
+	 {
+	 AdResult[NumberAd]=AdTemp;
+	 AdTemp=0;
+	 CtAd=CtAd0+2;
+	 if(!NumberAd)
+	 	{
+	 MyStatus=MyStatus | 1;
+	NumberAd=3;
+		}
+	else
+	--NumberAd;
+
+	 }
+
+
+	 ADMUX = ADMUX & 0xe0;
+	 ADMUX =ADMUX | NumberAd;
+	 ADCSRA |=(1<<ADSC);
+  	
+}
+
+
+ SIGNAL(SIG_OUTPUT_COMPARE1A)
+{
+	if(OverlowT1)
+	--OverlowT1;
+}
+ SIGNAL(SIG_OVERFLOW2)/*128mks*/
+{
+
+    if(!(RegS & 8))//set !=norma
+		{
+    Set=0;
+	CtSetOn=CtSetOn0;
+    PORTC=PORTC | 0x20;/*VT1=off*/
+    CtVT1=CtVT10;
+ 
+    Avaria=Avaria | 8;
+	Avaria &=8;
+			
+		}
+
+	TCNT2=0;
+	if(!MaskaSetka)
+	{
+
+	MaskaSetka=1;
+
+
+	}
+	else
+	{
+	MaskaSetka=0;
+
+	if(CtSetka<=6)
+	++CtSetka;
+	else
+	CtSetka=0;
+
+	CtByteAnod=0;
+	SPCR |=0x80;//enable Interrupt
+	PORTB |=2;
+ 	SPDR=Segment[CtSetka];
+
+	}
+}
+
+
+
+
+SIGNAL(SIG_SPI)
+{
+
+	if(!CtByteAnod)
+	{
+	++CtByteAnod;	
+
+	switch(CtSetka)
+		{
+	case 0:SPDR=0xfe;
+	break;
+	case 1:SPDR=0xfd;
+	break;
+	case 2:SPDR=0xfb;
+	break;
+	case 3:SPDR=0xf7;
+	break;
+	case 4:SPDR=0xef;
+	break;
+	case 5:SPDR=0xdf;
+	break;
+	case 6:SPDR=0xbf;
+	break;
+	case 7:SPDR=0x7f;
+	break;
+
+
+
+	default:break;
+
+		}
+
+
+	}
+
+
+	else
+	{
+	PORTB &=0xfd;
+	SPCR &=0x7f;//denable interrupt SPI
+
+	TCNT2=0xfe;
+	TIFR |=0x40;//reset flag
+	TIMSK |=0x40;
+	TCCR2=0x4;
+	MaskaSetka=0;
+	}
+
+}
+ SIGNAL(SIG_OVERFLOW0)/*16.384ms*/
+{
+    GICR |=(1<<INT1);/*Enable INT1*/
+    ACSR |=8;/*Enable Int Comparator*/
+
+    if(RegS & 0x10)
+    {
+    Avaria=Avaria | 0x40;/*UMax*/
+       Alfa=0;
+    OCR1B=0;
+    OCR1A=Icr1Temp;
+
+    }
+
+
+
+
+
+
+	if(CtInd)
+	--CtInd;
+	if(CtZarPodzar)
+	--CtZarPodzar;
+    if(CtUst)
+    --CtUst;
+   if(Set==1)/*Set=norma*/
+    {
+
+    if(CtVT1)
+    --CtVT1;
+    else
+        {
+    PORTC=PORTC & 0xdf;/*VT1=on*/
+    Avaria=Avaria & 0x1f7;
+        }
+    }
+
+ 
+
+    /*ControlSet*/
+
+    if(RegS & 8)//set=norma
+        {
+
+    if(CtSetOn)
+    --CtSetOn;
+    else
+    Set=1;
+        }
+
+
+
+
+
+    if(CtMig)
+    --CtMig;
+    else
+        {
+	if(!(Avaria & 0x45))
+		{
+	CtResetAvaria=10;
+	PORTD |=0x10;
+		}			
+
+	else
+		{
+	if(CtResetAvaria)
+	--CtResetAvaria;
+	else
+			{
+	Avaria &=0xffba;
+	PORTD &=0xef;
+			}
+		}
+
+
+    CtMig=CtMig0;
+	if(TimePusk)
+	--TimePusk;
+
+	if(CtIndTemperatura)
+	--CtIndTemperatura;
+	if(CtFlash1)
+	--CtFlash1;
+	if(TimeStart)
+	--TimeStart;
+    if(RegWait)
+    --RegWait;
+	if(CtRegimTest)
+	--CtRegimTest;
+    if(CtMotoLow)
+    --CtMotoLow;
+    else
+	        {
+    CtMotoLow=CtMotoLow0;
+    ++CtMoto;
+    if(CtOff)
+    --CtOff;
+    if(RegimWork<=1)
+    AH=AH+IAB;
+	        }
+		}
+}

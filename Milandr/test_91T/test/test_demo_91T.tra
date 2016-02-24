@@ -1,0 +1,48 @@
+*** Creating Trace Output File 'test_demo_91T.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '"startup_mdr32f9x.o"'
+### List of Objects: adding '"font_6x8.o"'
+### List of Objects: adding '"font_7x10_bold.o"'
+### List of Objects: adding '"font_7x10_thin.o"'
+### List of Objects: adding '"font_12x16.o"'
+### List of Objects: adding '"joystick.o"'
+### List of Objects: adding '"leds.o"'
+### List of Objects: adding '"main.o"'
+### List of Objects: adding '"demo_init_mdr32f9q1.o"'
+### List of Objects: adding '"lcd_mdr32f9q1.o"'
+### List of Objects: adding '"text.o"'
+### List of Objects: adding '"mdr32f9qx_adc.o"'
+### List of Objects: adding '"mdr32f9qx_bkp.o"'
+### List of Objects: adding '"mdr32f9qx_can.o"'
+### List of Objects: adding '"mdr32f9qx_comp.o"'
+### List of Objects: adding '"mdr32f9qx_dac.o"'
+### List of Objects: adding '"mdr32f9qx_dma.o"'
+### List of Objects: adding '"mdr32f9qx_ebc.o"'
+### List of Objects: adding '"mdr32f9qx_eeprom.o"'
+### List of Objects: adding '"mdr32f9qx_i2c.o"'
+### List of Objects: adding '"mdr32f9qx_iwdg.o"'
+### List of Objects: adding '"mdr32f9qx_port.o"'
+### List of Objects: adding '"mdr32f9qx_power.o"'
+### List of Objects: adding '"mdr32f9qx_rst_clk.o"'
+### List of Objects: adding '"mdr32f9qx_ssp.o"'
+### List of Objects: adding '"mdr32f9qx_timer.o"'
+### List of Objects: adding '"mdr32f9qx_uart.o"'
+### List of Objects: adding '"mdr32f9qx_usb.o"'
+### List of Objects: adding '"mdr32f9qx_wwdg.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M3 "startup_mdr32f9x.o" "font_6x8.o" "font_7x10_bold.o" "font_7x10_thin.o" "font_12x16.o" "joystick.o" "leds.o" "main.o" "demo_init_mdr32f9q1.o" "lcd_mdr32f9q1.o" "text.o" "mdr32f9qx_adc.o" "mdr32f9qx_bkp.o" "mdr32f9qx_can.o" "mdr32f9qx_comp.o" "mdr32f9qx_dac.o" "mdr32f9qx_dma.o" "mdr32f9qx_ebc.o" "mdr32f9qx_eeprom.o" "mdr32f9qx_i2c.o" "mdr32f9qx_iwdg.o" "mdr32f9qx_port.o" "mdr32f9qx_power.o" "mdr32f9qx_rst_clk.o" "mdr32f9qx_ssp.o" "mdr32f9qx_timer.o" "mdr32f9qx_uart.o" "mdr32f9qx_usb.o" "mdr32f9qx_wwdg.o" 
+--strict --scatter "test_demo_91T.sct" 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\test_demo_91T.map" -o test_demo_91T.axf### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: 'test_demo_91T.axf'
+### ADS-LD Command File: 'test_demo_91T.l2p'
+### Checking for dirty Components...
+### Creating CmdFile 'test_demo_91T.l2p', Handle=0x0000017C
+### Writing '.lnp' file
+### ADS-LD Command file 'test_demo_91T.l2p' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.

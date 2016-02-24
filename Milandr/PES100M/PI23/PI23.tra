@@ -1,0 +1,28 @@
+*** Creating Trace Output File 'PI23.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '".\startup_mdr32f9qx.o"'
+### List of Objects: adding '"system_mdr32f9qx.o"'
+### List of Objects: adding '"main.o"'
+### List of Objects: adding '"mdr32f9qx_port.o"'
+### List of Objects: adding '"mdr32f9qx_rst_clk.o"'
+### List of Objects: adding '"mdr32f9qx_timer.o"'
+### List of Objects: adding '"mdr32f9qx_uart.o"'
+### List of Objects: adding '"mdr32f9qx_can.o"'
+### List of Objects: adding '"mdr32f9qx_iwdg.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M3 ".\startup_mdr32f9qx.o" "system_mdr32f9qx.o" "main.o" "mdr32f9qx_port.o" "mdr32f9qx_rst_clk.o" "mdr32f9qx_timer.o" "mdr32f9qx_uart.o" "mdr32f9qx_can.o" "mdr32f9qx_iwdg.o" 
+--strict --scatter "PI23.sct" 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\PI23.map" -o PI23.axf### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: 'PI23.axf'
+### ADS-LD Command File: 'PI23.l2p'
+### Checking for dirty Components...
+### Creating CmdFile 'PI23.l2p', Handle=0x00001134
+### Writing '.lnp' file
+### ADS-LD Command file 'PI23.l2p' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.

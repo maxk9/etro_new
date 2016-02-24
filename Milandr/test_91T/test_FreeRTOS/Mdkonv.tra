@@ -1,0 +1,55 @@
+*** Creating Trace Output File 'Mdkonv.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '"startup_mdr32f9qx.o"'
+### List of Objects: adding '"system_mdr32f9qx.o"'
+### List of Objects: adding '"main.o"'
+### List of Objects: adding '"joystick.o"'
+### List of Objects: adding '"leds.o"'
+### List of Objects: adding '"uip_task.o"'
+### List of Objects: adding '"ks0108.o"'
+### List of Objects: adding '"ks0108-milandr.o"'
+### List of Objects: adding '"graphic.o"'
+### List of Objects: adding '"mdr32f9qx_adc.o"'
+### List of Objects: adding '"mdr32f9qx_dac.o"'
+### List of Objects: adding '"mdr32f9qx_eeprom.o"'
+### List of Objects: adding '"mdr32f9qx_iwdg.o"'
+### List of Objects: adding '"mdr32f9qx_port.o"'
+### List of Objects: adding '"mdr32f9qx_rst_clk.o"'
+### List of Objects: adding '"mdr32f9qx_ssp.o"'
+### List of Objects: adding '"mdr32f9qx_timer.o"'
+### List of Objects: adding '"mdr32f9qx_uart.o"'
+### List of Objects: adding '"mdr32f9qx_wwdg.o"'
+### List of Objects: adding '"mdr32f9qx_ebc.o"'
+### List of Objects: adding '"croutine.o"'
+### List of Objects: adding '"death.o"'
+### List of Objects: adding '"heap_1.o"'
+### List of Objects: adding '"list.o"'
+### List of Objects: adding '"port.o"'
+### List of Objects: adding '"queue.o"'
+### List of Objects: adding '"tasks.o"'
+### List of Objects: adding '"timers.o"'
+### List of Objects: adding '"psock.o"'
+### List of Objects: adding '"timer.o"'
+### List of Objects: adding '"uip.o"'
+### List of Objects: adding '"uip_arp.o"'
+### List of Objects: adding '"httpd.o"'
+### List of Objects: adding '"httpd-cgi.o"'
+### List of Objects: adding '"httpd-fs.o"'
+### List of Objects: adding '"http-strings.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M3 "startup_mdr32f9qx.o" "system_mdr32f9qx.o" "main.o" "joystick.o" "leds.o" "uip_task.o" "ks0108.o" "ks0108-milandr.o" "graphic.o" "mdr32f9qx_adc.o" "mdr32f9qx_dac.o" "mdr32f9qx_eeprom.o" "mdr32f9qx_iwdg.o" "mdr32f9qx_port.o" "mdr32f9qx_rst_clk.o" "mdr32f9qx_ssp.o" "mdr32f9qx_timer.o" "mdr32f9qx_uart.o" "mdr32f9qx_wwdg.o" "mdr32f9qx_ebc.o" "croutine.o" "death.o" "heap_1.o" "list.o" "port.o" "queue.o" "tasks.o" "timers.o" "psock.o" "timer.o" "uip.o" "uip_arp.o" "httpd.o" "httpd-cgi.o" "httpd-fs.o" "http-strings.o" 
+C:\Keil\ARM\RV31\LIB\RTX_CM3.LIB --strict --scatter "Mdkonv.sct" 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\Mdkonv.map" -o Mdkonv.axf### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: 'Mdkonv.axf'
+### ADS-LD Command File: 'Mdkonv.l2p'
+### Checking for dirty Components...
+### Creating CmdFile 'Mdkonv.l2p', Handle=0x00000350
+### Writing '.lnp' file
+### ADS-LD Command file 'Mdkonv.l2p' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.

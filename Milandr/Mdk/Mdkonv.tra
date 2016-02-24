@@ -1,0 +1,50 @@
+*** Creating Trace Output File 'Mdkonv.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '"startup_mdr32f9qx.o"'
+### List of Objects: adding '"system_mdr32f9qx.o"'
+### List of Objects: adding '"main.o"'
+### List of Objects: adding '"uip_task.o"'
+### List of Objects: adding '"mdr32f9qx_adc.o"'
+### List of Objects: adding '"mdr32f9qx_eeprom.o"'
+### List of Objects: adding '"mdr32f9qx_iwdg.o"'
+### List of Objects: adding '"mdr32f9qx_port.o"'
+### List of Objects: adding '"mdr32f9qx_rst_clk.o"'
+### List of Objects: adding '"mdr32f9qx_ssp.o"'
+### List of Objects: adding '"mdr32f9qx_timer.o"'
+### List of Objects: adding '"mdr32f9qx_uart.o"'
+### List of Objects: adding '"mdr32f9qx_wwdg.o"'
+### List of Objects: adding '"croutine.o"'
+### List of Objects: adding '"list.o"'
+### List of Objects: adding '"queue.o"'
+### List of Objects: adding '"tasks.o"'
+### List of Objects: adding '"timers.o"'
+### List of Objects: adding '"heap_1.o"'
+### List of Objects: adding '"death.o"'
+### List of Objects: adding '"port.o"'
+### List of Objects: adding '"httpd.o"'
+### List of Objects: adding '"httpd-cgi.o"'
+### List of Objects: adding '"httpd-fs.o"'
+### List of Objects: adding '"http-strings.o"'
+### List of Objects: adding '"uip_arp.o"'
+### List of Objects: adding '"psock.o"'
+### List of Objects: adding '"timer.o"'
+### List of Objects: adding '"uip.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M3 "startup_mdr32f9qx.o" "system_mdr32f9qx.o" "main.o" "uip_task.o" "mdr32f9qx_adc.o" "mdr32f9qx_eeprom.o" "mdr32f9qx_iwdg.o" "mdr32f9qx_port.o" "mdr32f9qx_rst_clk.o" "mdr32f9qx_ssp.o" "mdr32f9qx_timer.o" "mdr32f9qx_uart.o" "mdr32f9qx_wwdg.o" "croutine.o" "list.o" "queue.o" "tasks.o" "timers.o" "heap_1.o" "death.o" "port.o" "httpd.o" "httpd-cgi.o" "httpd-fs.o" "http-strings.o" "uip_arp.o" "psock.o" "timer.o" "uip.o" 
+
+--feedback "Mdkonv.fed" --feedback_image=none 
+--strict --scatter "Mdkonv.sct" 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\Mdkonv.map" -o Mdkonv.axf### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: 'Mdkonv.axf'
+### ADS-LD Command File: 'Mdkonv.l1p'
+### Checking for dirty Components...
+### Creating CmdFile 'Mdkonv.l1p', Handle=0x000005A0
+### Writing '.lnp' file
+### ADS-LD Command file 'Mdkonv.l1p' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.

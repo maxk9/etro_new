@@ -1,0 +1,304 @@
+	while(1)
+	{
+		//if(PORT_ReadInputDataBit(I2C_PORT,I2C_SDA) == 0)
+		if((I2C_PORT->RXTX & I2C_SDA)==0)
+		{
+			
+			I2C_DELAY();
+			if(I2C_PORT->RXTX & I2C_SCL)
+			//if(PORT_ReadInputDataBit(I2C_PORT,I2C_SCL))
+			{
+				while (I2C_PORT->RXTX & I2C_SCL);
+				addr=0;
+				//taskENTER_CRITICAL();
+				__disable_irq();
+
+				//detect start
+				i=0;
+				pausa=0;
+				while( i<8 )
+				{
+					//TEST_ON;
+					while ( !(I2C_PORT->RXTX & I2C_SCL) )
+						++pausa;
+					
+					if( I2C_PORT->RXTX & I2C_SDA )
+						addr |= 1<<i;
+					
+					while (( I2C_PORT->RXTX & I2C_SCL ))
+						++pausa;
+					
+					++i;
+					//TEST_OFF;
+				}
+				//if(addr == 4) //send ACK
+				{
+					//PORT_ResetBits(I2C_PORT,I2C_SDA);
+					I2C_PORT->RXTX &= !I2C_SDA;
+					state = 0;
+					while(pausa)
+					{
+						if(!(I2C_PORT->RXTX & I2C_SCL))
+							state = 1;
+						if((I2C_PORT->RXTX & I2C_SCL))
+							state = 2;
+						else
+							if( (state == 2) && (!(I2C_PORT->RXTX & I2C_SCL)))
+								break;
+						--pausa;
+					}
+					I2C_PORT->RXTX |= I2C_SDA;
+					//PORT_SetBits(I2C_PORT,I2C_SDA);
+				}
+				cnt_b = 0;
+				stop = false;
+				while( !stop )
+				{
+					if( cnt_b<10 )
+						read_d[ cnt_b ] = 0;
+					else
+					{
+						stop = true;
+						break;
+					}
+					while( i<8 )
+					{
+						//TEST_ON;
+						while ( !(I2C_PORT->RXTX & I2C_SCL) )
+							++pausa;
+						
+						if( I2C_PORT->RXTX & I2C_SDA )
+							read_d[cnt_b] |= 1<<i;
+						st_one =false;
+						while (( I2C_PORT->RXTX & I2C_SCL ))
+						{
+							++pausa;
+							if(!(I2C_PORT->RXTX & I2C_SDA))
+								st_one=true;
+							if(st_one && (I2C_PORT->RXTX & I2C_SDA)) //stop
+							{
+								stop = true;
+								break;
+							}
+						}
+						++i;
+						//TEST_OFF;
+					}
+					++cnt_b;
+					if( !stop )
+					{
+						//if(addr == 4) //send ACK
+						{
+							//PORT_ResetBits(I2C_PORT,I2C_SDA);
+							I2C_PORT->RXTX &= !I2C_SDA;
+							state=0;
+							while (pausa)
+							{
+								if(!PORT_ReadInputDataBit( I2C_PORT,I2C_SCL ))
+									state = 1;
+								if(PORT_ReadInputDataBit( I2C_PORT,I2C_SCL ))
+									state = 2;
+								else
+									if(state == 2)
+										break;
+								--pausa;
+							}
+							I2C_PORT->RXTX |= I2C_SDA;
+							//PORT_SetBits(I2C_PORT,I2C_SDA);
+						}
+					}
+				}
+				
+				__enable_irq();
+				//taskEXIT_CRITICAL();
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	if( r_adr==5 )//read from slave
+	{
+		while( byte<13 )//byte
+		{
+			bit =0;
+			while( bit<8 )
+			{
+				cnt_p = cnt_p_cpy;
+				while( cnt_p )
+				{
+					--cnt_p;
+					if((I2C_PORT -> RXTX & I2C_SCL))
+					{
+						break;
+					}
+				}
+				
+				if((data_tx[byte]>>(7-bit))&1)
+				{
+					I2C_PORT -> RXTX |= I2C_SDA;
+				}
+				else
+				{
+					I2C_PORT -> RXTX &= !I2C_SDA;
+				}
+			
+				while(cnt_p)
+				{
+					--cnt_p;
+					if(!(I2C_PORT->RXTX & I2C_SCL))
+					{
+						break;
+					}
+				}
+				++bit;
+			}
+			
+			if(!cnt_p)
+			{
+				I2C_PORT -> RXTX |= I2C_SDA;
+				return 0;
+			}
+			
+			cnt_p = cnt_p_cpy;
+			while( cnt_p )		//ACK
+			{
+				--cnt_p;
+				if((I2C_PORT -> RXTX & I2C_SCL))
+				{
+					break;
+				}
+			}
+			while(cnt_p)
+			{
+				--cnt_p;
+				if(!(I2C_PORT->RXTX & I2C_SCL))
+				{
+					break;
+				}
+			}
+			
+			if(!cnt_p)
+			{
+				I2C_PORT -> RXTX |= I2C_SDA;
+				return 0;
+			}
+			
+			++byte;
+		}
+		I2C_PORT -> RXTX |= I2C_SDA;
+	}
+	else//write to slave r_adr==4
+	{
+		byte = 0;
+		while(byte<10)//byte
+		{
+			bit=0;
+			while(bit<9)
+			{
+				cnt_p = cnt_p_cpy;
+				while(cnt_p)
+				{
+					--cnt_p;
+					if((I2C_PORT->RXTX & I2C_SCL))
+					{
+						break;
+					}
+				}
+				if(!cnt_p)
+				{
+					I2C_PORT -> RXTX |= I2C_SDA;
+					return 0;
+				}
+				TEST_ON;
+				
+				if(( I2C_PORT->RXTX & I2C_SDA ))
+					data_tx[byte] |= 1<<(7-bit);
+				
+				if( bit == 8 )
+				{
+					TEST_ON;
+					while( I2C_PORT -> RXTX & I2C_SCL );
+					
+					I2C_PORT -> RXTX &= !I2C_SDA;//ACK
+					cnt_p *= 2;
+					break;
+				}
+				else
+					while( cnt_p )
+					{
+						--cnt_p;
+						if(!(I2C_PORT->RXTX & I2C_SCL))
+						{
+							break;
+						}
+					}
+				I2C_DELAY();//1us
+				TEST_OFF;
+				if(!cnt_p)
+				{
+					I2C_PORT -> RXTX |= I2C_SDA;
+					return 0;
+				}
+				++bit;
+			}
+			++byte;
+		}
+		I2C_PORT -> RXTX |= I2C_SDA;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

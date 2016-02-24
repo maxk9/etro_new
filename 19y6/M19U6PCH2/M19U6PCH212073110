@@ -1,0 +1,967 @@
+ /*ПЗА AТМЕЛ*/   
+    
+//with Int comparator=off 
+    #include <compat/ina90.h>
+    #include <avr/iom8535.h>
+    #include <avr/interrupt.h>
+    #include <avr/io.h>
+    #include <math.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <ctype.h>
+    #include <string.h>
+    #include <avr/pgmspace.h>
+
+	unsigned char Gashenie;
+	unsigned char TestUsartPC2;
+	unsigned char TestUSART;
+    const unsigned char UMax=250;//230B
+    unsigned int UMin;
+   unsigned char CtDeltaU;
+
+    unsigned char CtTransmitFunction;
+    unsigned char UNom;
+    unsigned int Reg0;
+
+    unsigned char CtTestUsart;
+    unsigned char TestTwi;
+
+
+    unsigned    char            CtInitUsart;
+    unsigned    char            TestTransmit;
+    unsigned    char            CtKn;
+
+
+    unsigned    char            EndAd;
+    unsigned    char            CtTG;
+    unsigned    char            EnableLoad;
+    unsigned    char            TestLink;
+    unsigned    char            CtPusk;
+	unsigned    char            CtTransmit;
+	unsigned    char            CtReceive;
+ 	unsigned    char            RomReceive[12];
+ 	unsigned    char            RegTransmit[12];
+    unsigned    int             CtTWCR;
+ 	unsigned    char            RamReceive[12];
+	const   unsigned    int     CtTWCR0=5000;//500;
+    unsigned    char            RegimWork;
+
+
+
+    unsigned    int             CtTime[8];
+    const unsigned    int       CtTime0[8]={152,305,61,459,5500,301,220,61};
+    unsigned    char            RegimTime;
+    unsigned int RegInt0;
+   unsigned int RegInt1;
+
+    unsigned    char             CtErrorLink;
+	const   unsigned    char     CtErrorLink0=100;
+
+    unsigned    char            CtOverLow;
+
+    unsigned int CtStart;
+    unsigned char CtEeprom;
+
+ 	unsigned    int	CtError[8];
+ 	const unsigned    int CtError0[8]={100,100,250,60,
+										300,680,100,450};
+
+    unsigned char RegimError;
+
+ 	unsigned    char    Avaria;
+    unsigned int CtInitInd;
+    unsigned int RegInt0;
+
+	unsigned    int    Reg0;
+	unsigned    char   Reg1;
+    unsigned    char    SregTemp;   
+	unsigned    char    IndData[6];
+	unsigned    char	NumberAd;
+    unsigned    char	CtAd;
+
+	static const unsigned    char	    CtAd0=33;//3.2msec
+	unsigned    long	AdTemp;
+ 	unsigned    int	AdResult;
+	unsigned    int	RegS,RegSTemp,RegSOld;
+	unsigned    int	RegSWork;
+
+    unsigned    int              CtUst;
+    static const    unsigned int        CtUst0=10;
+    unsigned char ControlReceiveUsart;
+    unsigned char CtErrorLinkUsart;
+    const unsigned char CtErrorLinkUsart0=10;
+
+	volatile    unsigned char CtReceiveUsart;
+    const unsigned char CtReceiveUsart0=20;
+ 	unsigned    char            RegTransmitUsart[10];
+ 	unsigned    char            RamReceiveUsart[10];
+ 	unsigned    char            RomReceiveUsart[10][3];
+	volatile    unsigned char	CtNoReceiveUsart;
+	volatile    unsigned char	RCHTransmit;
+	volatile    unsigned char	RCLTransmit;
+	volatile    unsigned char	RCHReceive;
+	volatile    unsigned char	RCLReceive;
+	unsigned char	NumberLinkUsart;//CtNoReceive;
+	unsigned char	CtTransmitUsart;
+
+
+
+	volatile const unsigned char  high[256] PROGMEM= {0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,1,0xc0,0x80,0x41,0,0xc1,0x81,
+						0x40,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40,0,0xc1,0x81,0x40,1,0xc0,
+						0x80,0x41,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40,0,0xc1,0x81,0x40,1,
+						0xc0,0x80,0x41,0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,1,0xc0,0x80,0x41,
+						0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40,0,0xc1,0x81,
+						0x40,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,1,0xc0,
+						0x80,0x41,0,0xc1,0x81,0x40,0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,1,
+						0xc0,0x80,0x41,0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40,
+						0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,1,0xc0,0x80,0x41,0,0xc1,0x81,
+						0x40,0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40,1,0xc0,
+						0x80,0x41,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40,0,0xc1,0x81,0x40,1,
+						0xc0,0x80,0x41,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,
+						0,0xc1,0x81,0x40,0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,0,0xc1,0x81,
+						0x40,1,0xc0,0x80,0x41,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40,1,0xc0,
+						0x80,0x41,0,0xc1,0x81,0x40,0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,1,
+						0xc0,0x80,0x41,0,0xc1,0x81,0x40,0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,
+						0,0xc1,0x81,0x40,1,0xc0,0x80,0x41,1,0xc0,0x80,0x41,0,0xc1,0x81,0x40};
+
+	volatile const unsigned char low[256] PROGMEM={0,0xc0,0xc1,1,0xc3,0x3,0x2,0xc2,0xc6,0x6,0x7,0xc7,0x5,0xc5,0xc4,
+						0x4,0xcc,0xc,0xd,0xcd,0xf,0xcf,0xce,0xe,0xa,0xca,0xcb,0xb,0xc9,
+						0x9,0x8,0xc8,0xd8,0x18,0x19,0xd9,0x1b,0xdb,0xda,0x1a,0x1e,0xde,0xdf,0x1f,
+						0xdd,0x1d,0x1c,0xdc,0x14,0xd4,0xd5,0x15,0xd7,0x17,0x16,0xd6,0xd2,0x12,0x13,
+						0xd3,0x11,0xd1,0xd0,0x10,0xf0,0x30,0x31,0xf1,0x33,0xf3,0xf2,0x32,0x36,0xf6,
+						0xf7,0x37,0xf5,0x35,0x34,0xf4,0x3c,0xfc,0xfd,0x3d,0xff,0x3f,0x3e,0xfe,0xfa,
+						0x3a,0x3b,0xfb,0x39,0xf9,0xf8,0x38,0x28,0xe8,0xe9,0x29,0xeb,0x2b,0x2a,0xea,
+						0xee,0x2e,0x2f,0xef,0x2d,0xed,0xec,0x2c,0xe4,0x24,0x25,0xe5,0x27,0xe7,0xe6,
+						0x26,0x22,0xe2,0xe3,0x23,0xe1,0x21,0x20,0xe0,0xa0,0x60,0x61,0xa1,0x63,0xa3,
+						0xa2,0x62,0x66,0xa6,0xa7,0x67,0xa5,0x65,0x64,0xa4,0x6c,0xac,0xad,0x6d,0xaf,
+						0x6f,0x6e,0xae,0xaa,0x6a,0x6b,0xab,0x69,0xa9,0xa8,0x68,0x78,0xb8,0xb9,0x79,
+						0xbb,0x7b,0x7a,0xba,0xbe,0x7e,0x7f,0xbf,0x7d,0xbd,0xbc,0x7c,0xb4,0x74,0x75,
+						0xb5,0x77,0xb7,0xb6,0x76,0x72,0xb2,0xb3,0x73,0xb1,0x71,0x70,0xb0,0x50,0x90,
+						0x91,0x51,0x93,0x53,0x52,0x92,0x96,0x56,0x57,0x97,0x55,0x95,0x94,0x54,0x9c,
+
+
+						0x5c,0x5d,0x9d,0x5f,0x9f,0x9e,0x5e,0x5a,0x9a,0x9b,0x5b,0x99,0x59,0x58,0x98,
+						0x88,0x48,0x49,0x89,0x4b,0x8b,0x8a,0x4a,0x4e,0x8e,0x8f,0x4f,0x8d,0x4d,0x4c,
+						0x8c,0x44,0x84,0x85,0x45,0x87,0x47,0x46,0x86,0x82,0x42,0x43,0x83,0x41,0x81,
+						0x80,0x40};	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+       
+    /*============================================*/
+     void    ReadKn(void)
+    {
+
+    unsigned    int R0;
+
+    R0=0;
+    if(bit_is_clear(PINA,PA6))
+    R0 |=1;
+    if(bit_is_clear(PINC,PC5))
+    R0 |=2;
+    if(bit_is_clear(PINC,PC3))
+    R0 |=4;
+    if(bit_is_clear(PIND,PD7))
+    R0 |=0x8;
+    if(bit_is_clear(PIND,PD6))
+    R0 |=0x10;
+    if(bit_is_clear(PIND,PD5))
+    R0 |=0x20;
+    if(bit_is_clear(PIND,PD3))
+    R0 |=0x40;
+    if(bit_is_clear(PIND,PD2))
+    R0 |=0x80;
+    if(bit_is_clear(PINB,PB1))
+    R0 |=0x100;
+    if(bit_is_clear(PINB,PB2))
+    R0 |=0x200; 
+    if(R0==RegSTemp)
+		{
+	RegSOld=RegS;
+    RegS=R0;
+
+				{
+	if((RegS & 0x40)&&(!(RegSOld & 0x40)))
+					{
+	RegSWork |=0x40;
+	CtKn=50;
+					}
+				}
+
+		}
+//	if(!CtKn)
+//	RegSWork=0;
+    RegSTemp=R0;
+
+ 
+    }
+
+ 
+ 
+ 
+
+void		DecSegm( unsigned int Arg0)
+    {
+     unsigned int	Arg1;
+
+	if(Arg0>9999)
+	Arg0=9999;
+    Arg1=Arg0/1000;
+	IndData[3]=Arg1;
+    Arg0=Arg0%1000;
+    Arg1=Arg0/100;
+	IndData[2]=Arg1;
+    Arg0=Arg0%100;
+    Arg1=Arg0/10;
+	IndData[1]=Arg1;
+    Arg0=Arg0%10;
+	IndData[0]=Arg0;
+	
+    }
+    void    WriteEeprom(unsigned char Arg4,unsigned char Arg5)
+    {
+    _WDR();
+    while(bit_is_set(EECR,EEWE))
+    ;
+    while(bit_is_set(SPMCR,SPMEN))
+    ;
+
+	EEARL=Arg4;
+	EEARH=0;
+	EEDR=Arg5;
+    SregTemp=SREG;
+    _CLI();
+	EECR |=(1<<EEMWE);
+                       		 
+	EECR |=(1<<EEWE);
+    SREG=SregTemp;				
+    while(bit_is_set(EECR,EEWE))
+    ;
+
+    while(bit_is_set(SPMCR,SPMEN))
+    ;
+}
+
+
+
+ 
+
+    unsigned char    ReadEeprom(unsigned char Arg6)
+	
+    {		 	
+	
+	EEARH=0;
+    EEARL=Arg6;
+	EECR=EECR | (1<<EERE);
+
+	while	(bit_is_set(EECR,EERE))
+    ;
+
+	return EEDR;
+    }
+ 
+    void InitAd   (void)
+    {
+    ADMUX=0xc0;//AVCC=Ref
+    SFIOR=SFIOR & 0x1b;//start from end AD
+ 	CtAd=CtAd0;
+	NumberAd=9;
+	ADCSRA=0;
+	ADCSRA |=(1<<ADEN);/*enable AD*/
+	ADCSRA |=(1<<ADPS2);
+    ADCSRA |=(1<<ADPS1);
+    ADCSRA |=(1<<ADATE);//Auto trigger enable
+//	ADCSRA |=(1<<ADPS0); /*32*/	 		
+	ADCSRA |=(1<<ADIE);/* enable interrupt*/
+    ADCSRA |=(1<<ADSC);/* Start*/
+    }
+
+    unsigned   int    ChangeUst(int unsigned R0)   
+    {
+    if(!CtUst)
+        {
+        if(RegS & 0x400)
+        ++R0;
+
+        else   if(RegS & 0x800)
+        --R0;
+
+    CtUst=CtUst0;
+        }
+    return R0;    
+    }
+
+
+
+
+    void LoadRomReceive(void)
+    {
+    unsigned char R0;
+    unsigned char R1;           
+    R0=0;
+    for(R1=1;R1<=10;++R1)
+    R0 +=RamReceive[R1];
+    if(R0==RamReceive[0])
+        {
+    for(R0=1;R0<=10;++R0)
+    RomReceive[R0]=RamReceive[R0];
+	CtErrorLink=CtErrorLink0;
+	Avaria &=0xbf;
+        }
+   
+    }
+ unsigned char WaitTWCR(void)
+    {
+   while(!(TWCR & 0x80))
+        {
+   _WDR();
+
+    if(CtTWCR)
+    --CtTWCR;
+    else
+            {
+    CtTWCR=CtTWCR0;
+    return 0;
+            }
+        }
+    CtTWCR=CtTWCR0;
+    return 1;
+    }   
+    void ReceiveTransmitSlave(void)
+    {
+
+    if((TWSR & 0xf8)==0x60)//Adr Slave Receive
+        {
+    CtReceive=10;
+
+
+		}
+	else    if((TWSR & 0xf8)==0x80)//Data Slave Receive
+        {
+//	++TestTransmit;//
+    RamReceive[CtReceive]=TWDR;
+    if(CtReceive)
+	{
+
+    --CtReceive;
+
+		}
+	else
+	{
+	++TestTransmit;//
+	LoadRomReceive();
+
+	}
+		}
+    else if((TWSR & 0xf8)==0xA8)//Adr Slave Transmit
+        {
+
+    CtTransmit=10;
+	EnableLoad=0;
+    TWDR=RegTransmit[CtTransmit];
+
+
+		}
+    else if((TWSR & 0xf8)==0xb8)//Data Slave Transmit
+        {
+    if(CtTransmit)
+			{
+    --CtTransmit;
+    TWDR=RegTransmit[CtTransmit];
+			}
+	else
+			{
+    TWDR=RegTransmit[CtTransmit];
+	EnableLoad=1;
+			}
+
+        }
+    TWCR |=(1<<TWINT);
+
+
+    }
+    void    LoadControlSum(void)
+    {
+    unsigned char R0;
+    RegTransmit[0]=0;
+    for(R0=1;R0<=10;++R0)
+    RegTransmit[0] +=RegTransmit[R0];
+    }
+
+
+
+    void    LoadRegTransmit(void)
+    {
+ //   unsigned char R0;
+//	++TestTwi;    
+//    for(R0=1;R0<=10;++R0)
+    RegTransmit[1]=2;//RegimWork;//UC;
+    RegTransmit[5]=RegimWork;//UC;
+    RegTransmit[4]=RegS;
+    RegTransmit[3]=RegS>>8;
+    RegTransmit[2]=UNom;//TestReceiveUsart2;
+/*    RegTransmit[7]=RegTransmitUsart[7];
+    RegTransmit[6]=RegTransmitUsart[8];
+    RegTransmit[5]=RegTransmitUsart[9];
+    RegTransmit[4]=RegTransmitUsart[10];
+    RegTransmit[3]=RegTransmitUsart[11];
+    RegTransmit[2]=RegTransmitUsart[12];*/
+    } 
+
+
+	void	IndicatorLed(void)
+	{
+	if(RegimWork & 1)//Zamena
+	PORTD &=0xef;
+	else
+	PORTD |=0x10;
+
+
+
+	if(RegS & 0x100)//MU
+		{
+	PORTB &=0xfe;
+	PORTA |=0x1;
+		}
+	else//DU
+		{
+	PORTB |=0x1;
+	PORTA &=0xfe;
+		}
+	if(!(RomReceive[1] & 0x40))//R Iz
+	PORTC &=0x7f;
+	 if(!(RomReceive[1] & 0x20))//R Iz
+	PORTC &=0x7f;
+	else
+	PORTC |=0x80;
+	if(RomReceive[2] & 0x1)//Error
+	PORTA &=0xfb;
+	else
+	PORTA |=0x4;
+	if(RomReceive[2] & 0x4)//Work
+	PORTA &=0xfd;
+	else
+	PORTA |=0x2;	
+	if(RomReceive[2] & 0x8)//U No Norma
+	PORTA &=0xef;
+	else
+	PORTA |=0x10;
+	if(RomReceive[2] & 0x10)//Peregruz
+	PORTC &=0xbf;
+	else
+	PORTC |=0x40;
+	if(RomReceive[2] & 0x20)//Luk close
+	PORTA &=0xf7;
+	else
+	PORTA |=0x8;
+}
+void	InitUSART(void)
+	{
+    UCSRA=0;//двойная скорость
+    UCSRB=0x1c;//enable transmit,receive,8bit
+    UCSRC=0x86;//0x24 7 bit control parity
+    UBRRH=0;
+    UBRRL=103;//9600
+
+     while(!(UCSRA & 0x20))
+   _WDR();
+
+	UCSRB  |=0x80;//Interrupt Receive enable
+
+	}
+	void	TransmitUsart(unsigned char R0)
+	{
+	unsigned char R1;
+	for(R1=0;R1<=R0;++R1)
+		{
+     while(!(UCSRA & 0x20))
+   _WDR();
+    UDR=RegTransmitUsart[R1];
+		}
+			
+	}
+	unsigned char ProgramPageHigh(unsigned int R0)
+	{
+ 	unsigned char R3;
+	R3=pgm_read_byte_near(high+R0);//flash
+	return R3;	
+	}
+
+
+	unsigned char ProgramPageLow(unsigned int R0)
+	{
+ 	unsigned char R3;
+	R3=pgm_read_byte_near(low+R0);//flash
+	return R3;	
+	}
+
+
+	void	 CRCReceive(unsigned char R0)
+	{
+
+	volatile unsigned char R2;
+	R2=RCHReceive^ R0;//TransmitIrbi[R4][R5][(R0++)];
+	RCHReceive=RCLReceive^ ProgramPageHigh(R2);
+	RCLReceive=ProgramPageLow(R2);
+
+	}
+
+	void	ResetErrorLinkUsart(void)
+	{
+	unsigned char R0;
+	R0=UDR;//UDR1;
+	UCSRA &=0x22;//reset error
+	CtReceiveUsart=0;
+	}
+	void	ReceiveUsart(void)
+	{
+	unsigned char R0;
+	unsigned char R1;
+	unsigned char R2;
+	unsigned char R3;
+	unsigned char R4;
+
+	R3=CtReceiveUsart;
+	if(UCSRA &(1<<RXC))
+		{
+	R1=UCSRA;
+	R2=UCSRB;
+	R4=UCSRC;
+	R0=UDR;
+	if(R1 & 0x1c)//error
+			{
+
+	ResetErrorLinkUsart();
+	return;
+			}
+	if(R3>9)
+			{
+
+	ResetErrorLinkUsart();
+	return;
+			}
+
+	RamReceiveUsart[R3]=R0;
+	if(R3<=5)
+			{
+	++R3;
+	CRCReceive(R0);
+/*	if(R3==6)
+				{
+	RegTransmit[1][0]=RCHReceive;
+	RegTransmit[2][0]=RCLReceive;
+
+				}*/
+	CtReceiveUsart=R3;
+
+
+
+
+			}
+	else 
+			{
+			
+				
+	if(R3<=6)
+				{
+	++R3;
+	CtReceiveUsart=R3;
+				}
+
+	else
+				{	
+	
+	 if((RamReceiveUsart[6]==RCHReceive)&&(RamReceiveUsart[7]==RCLReceive))
+					{
+
+
+	for(R2=0;R2<=5;++R2)
+	RomReceiveUsart[R2][RamReceiveUsart[3]]=RamReceiveUsart[R2];
+
+
+
+	CtNoReceiveUsart=29;
+					}
+
+	CtReceiveUsart=0;
+	RCHReceive=0xff;
+	RCLReceive=0xff;
+
+				}
+			}
+
+
+		}
+
+	}    
+
+
+
+	void	 CRCTransmit(unsigned char R0)
+	{
+
+	unsigned char R2;
+
+	R2=RCHTransmit^ R0;//TransmitIrbi[R4][R5][(R0++)];
+	RCHTransmit=RCLTransmit^ ProgramPageHigh(R2);
+	RCLTransmit=ProgramPageLow(R2);
+
+	}
+	
+	void	 CRCTransmitGlobal(unsigned char R0)
+	{
+
+	unsigned char R2;
+	RCHTransmit=0xff;
+	RCLTransmit=0xff;
+
+	for(R2=0;R2<=R0;++R2)
+	CRCTransmit(RegTransmitUsart[R2]);
+	}
+	
+	
+		
+	
+	void LoadRegTransmitUsart(unsigned char NumberFunction)
+	{
+	unsigned char R0;
+
+	++TestUsartPC2;
+	R0=NumberFunction;
+	
+	RegTransmitUsart[0]=0x1;//Adres	
+	switch(R0)
+		{
+	case 0:
+	RegTransmitUsart[1]=0x6;//NumberFunction	
+	RegTransmitUsart[2]=0;//Adres H
+	RegTransmitUsart[3]=0;//Adres L
+
+	RegTransmitUsart[4]=UNom>>8;
+	RegTransmitUsart[5]=UNom;
+	CRCTransmitGlobal(5);
+	RegTransmitUsart[6]=RCHTransmit;
+	RegTransmitUsart[7]=RCLTransmit;
+	TransmitUsart(7);
+
+	break;
+	case 1:
+	RegTransmitUsart[1]=0x6;//NumberFunction	
+	RegTransmitUsart[2]=0;//Adres H
+	RegTransmitUsart[3]=1;//Adres L
+	RegTransmitUsart[4]=0;//KStatizm>>8;
+	RegTransmitUsart[5]=200;//KStatizm;
+	CRCTransmitGlobal(5);
+	RegTransmitUsart[6]=RCHTransmit;
+	RegTransmitUsart[7]=RCLTransmit;
+	TransmitUsart(7);
+	break;
+
+	case 2:
+	RegTransmitUsart[1]=0xf;//NumberFunction	
+	RegTransmitUsart[2]=0;//Adres H
+	RegTransmitUsart[3]=0x2;//Adres L
+	RegTransmitUsart[4]=0;//Number bits H
+	RegTransmitUsart[5]=4;//2;//Number bits L
+	RegTransmitUsart[6]=1;//Number byts 
+	RegTransmitUsart[7]=Gashenie;//4 Vozb=on 
+	CRCTransmitGlobal(7);
+	RegTransmitUsart[8]=RCHTransmit;
+	RegTransmitUsart[9]=RCLTransmit;
+	TransmitUsart(9);
+
+
+	break;
+
+
+	default:break;
+		}
+	
+
+
+	}
+			
+	void	ChangeUNom(void)
+	{
+	unsigned char R0;					
+	if(!CtDeltaU)
+		{
+	if(RegS & 0x100)//MU
+			{
+	if(RegS & 0x10)
+				{ 
+	++UNom;
+	CtDeltaU=10;
+				}
+	else if(RegS & 0x20)
+				{ 
+	--UNom;
+	CtDeltaU=10;
+				}
+			}
+	else//DU
+			{
+	if(RomReceive[2] & 0x40)
+				{ 
+	++UNom;
+	CtDeltaU=10;
+				}
+	else if(RomReceive[2] & 0x80)
+				{ 
+	--UNom;
+	CtDeltaU=10;
+				}
+			}
+	if(UNom>UMax)
+	UNom=UMax;
+	if(UNom<UMin)
+	UNom=UMin;
+
+
+	R0= ReadEeprom(1);
+	
+	if(R0 !=UNom)
+	WriteEeprom(1,UNom);
+
+		}
+
+	RegSOld=RegS;		
+	}																		        
+/*++++++++++++++++++++++++++++++++++++++++++*/
+
+
+    int main(void)
+    {
+	unsigned char Arg0;
+ 
+
+
+
+//if DDRX,X=1 PORTX,X=OUT
+    DDRA=0xbf;
+	PORTA = 0xff;//0xc0 prov
+
+    DDRB=1;
+	PORTB = 0xff;
+
+    DDRC=0xd4;
+    PORTC =0xff;
+
+    DDRD=0x12;
+    PORTD=0xff;
+
+//INIT TWI;
+    TWBR=0x7f;//F TWI
+
+
+    TCCR1B=0xc2;//0.5mkc
+    TIMSK=TIMSK | 0x4;//enable Int overlowT1
+	TWAR=4;
+    TWCR =(1<<TWEA)|(1<<TWEN);
+    ReadKn();
+    CtStart=200;
+	while(CtStart--)	_WDR();
+    ReadKn();
+   _SEI();
+    RegimTime &=0xc0;
+
+    CtUst=CtUst0;
+		
+	for(Arg0=1;Arg0<=10;++Arg0)
+	RomReceive[Arg0]=0;
+
+
+	CtEeprom=1;
+
+	RegimWork=0;
+	CtErrorLink=CtErrorLink0;
+
+	InitUSART();
+	Gashenie=0;//Gashenie=off;
+	UNom=ReadEeprom(1);
+	if(UNom>260)
+	UNom=220;
+	if(UNom<90)
+	UNom=220;
+	UMin=80;//95;//95B
+	CtReceiveUsart=0;			
+	Gashenie =4;//vozb=on	
+//WORK	
+	           
+      while(1)
+    {
+	_WDR();
+	if(!CtTransmitUsart)
+		{
+	if(NumberLinkUsart)
+	--NumberLinkUsart;
+	else
+	NumberLinkUsart=2;
+
+
+
+	CtReceiveUsart=0;
+	LoadRegTransmitUsart(NumberLinkUsart);
+	CtTransmitUsart=15;
+	RCHReceive=0xff;
+	RCLReceive=0xff;
+
+		}
+
+
+	if(RegS & 2)
+	RegimWork &=0xfe;
+	else if(RegSWork & 0x40)
+		{
+	if(RegimWork & 1)
+	RegimWork &=0xfe;
+	else
+	RegimWork |=1;
+	RegSWork &=0xbf;
+		}
+
+	if(RegS & 1)
+	PORTA &=0xdf;
+	else
+	PORTA |=0x20;
+	if(RegS & 2)
+	PORTA &=0x7f;
+	else
+	PORTA |=0x80;
+
+	if(RegS & 4)
+	PORTC &=0xef;
+	else
+	PORTC |=0x10;
+	if(RegS & 8)
+	PORTC &=0xfb;
+	else
+	PORTC |=0x4;
+
+	ChangeUNom();
+
+
+
+
+
+
+
+	IndicatorLed();
+	++TestLink;
+     _WDR();
+	if(EndAd)
+		{
+
+	EndAd=0;
+		}
+	if(EnableLoad)
+		{
+    LoadRegTransmit();
+    LoadControlSum();
+		}
+	if(TWCR & 0x80)
+			{
+    ReceiveTransmitSlave();
+//	++TestTransmit;
+			}
+	if(!CtErrorLink)//ErrorLink;
+		{
+
+//INIT TWI;
+    TWBR=0;//F TWI
+   TWAR=0;
+   TWCR =0;
+	TWSR=0xf8;
+    CtStart=50;
+	while(CtStart--)	_WDR();
+    TWBR=0x7f;//F TWI
+   TWAR=4;
+   TWCR =(1<<TWEA)|(1<<TWEN);
+	CtErrorLink=CtErrorLink0;
+
+    CtStart=200;
+	while(CtStart--)	_WDR();
+		}
+
+    ReadKn();
+
+				
+
+    }
+  
+}
+
+ SIGNAL(SIG_OVERFLOW1)/*32.7 Mc*/
+    {
+	if(CtTransmitUsart)
+	--CtTransmitUsart;
+	if(CtNoReceiveUsart)
+	--CtNoReceiveUsart;
+	else
+		{
+//	CtReceiveUsart=0;
+	RCHReceive=0xff;
+	RCLReceive=0xff;
+	CtNoReceiveUsart=29;
+		}
+
+
+
+	if(CtKn)
+	--CtKn;
+	if(CtDeltaU)
+	--CtDeltaU;
+
+	if(CtTestUsart)
+	--CtTestUsart;
+	++TestTwi;
+
+
+    if(CtErrorLink)
+    --CtErrorLink;
+    else
+    Avaria |=0x40;
+
+
+    for(RegInt1=0;RegInt1<=7;++RegInt1)
+	    {
+    if(RegimError & (1<<RegInt1))
+	        {
+    if(CtError[RegInt1])
+    --CtError[RegInt1];
+	        }
+    else
+    CtError[RegInt1]=CtError0[RegInt1];
+
+    if(RegimTime & (1<<RegInt1))
+        {
+    if(CtTime[RegInt1])
+    --CtTime[RegInt1];
+        }
+    else
+    CtTime[RegInt1]=CtTime0[RegInt1];
+	    }
+
+    }
+	SIGNAL(SIG_UART_RECV)
+{
+
+
+	ReceiveUsart();
+
+}
+
+
+
