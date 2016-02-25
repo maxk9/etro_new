@@ -750,7 +750,7 @@ void Timer2_IRQHandler(void)
 	portYIELD_FROM_ISR( NULL );
 }
 
-//void main(void)
+
 void vSmirnov_Task( void *pvParameters )
 {
 	uint8_t cnt_b=0,strl[10];
@@ -805,13 +805,13 @@ void vSmirnov_Task( void *pvParameters )
 	{
 		//IWDG->KR = 0xaaaa;
 		//Avaria = 0x41;
-		if(PKDU_Status.ERROR)
+		if(PKDU_Status.ERROR)//если произошла ошибка ВГ1 не отвечает и тп
 		{
 			clear_lcd();
-			Show_led_str(error,0,7);
+			Show_led_str(error,0,7);//1 строчка ОШИБКА
 			
 			if(PKDU_Status.ERROR<8)
-				index_char[11] = (PKDU_Status.ERROR+16)*5;
+				index_char[11] = (PKDU_Status.ERROR+16)*5; //номер ошибки
 			else
 				index_char[11] = 6*5;
 			
