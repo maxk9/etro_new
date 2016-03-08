@@ -1396,7 +1396,7 @@ void vSetErrorTask( void *pvParameters )
 						case 13:
 							alarm = true;
 							break;
-						case 14:
+						case 14://lvl maslo
 							alarm = true;
 							StatusDG.RegWrk &= 0x100;
 							StatusDG.RegWrk |= 1<<7;//rashol
