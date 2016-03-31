@@ -1337,7 +1337,7 @@ void vKeyHandlerTask( void *pvParameters )
 	static uint16_t RegKn = 0, RegKnOld = 0;
 //	char stat_buff[150];
 	u8 i=0, j=0;
-	
+	vTaskDelay( 150 );
 	for( ;; )
 	{
 		
@@ -1485,14 +1485,14 @@ void load_led_reg(void)
 	{
 		reg = 0;
 		digit = 0;
-		//while( reg < 7 )
-		while( reg < 6 )
+		while( reg < 7 )
+		//while( reg < 6 )
 		{
 			led_reg[reg][row] = 0;
 			
 			bit16 = 0;
-			//while( (bit16 < 16) && (reg < 7))
-			while( (bit16 < 16) && (reg < 6))
+			while( (bit16 < 16) && (reg < 7))
+			//while( (bit16 < 16) && (reg < 6))
 			{
 				while( bit8 < 7 )
 				{

@@ -227,7 +227,7 @@ volatile BaseType_t	ADC_Arr[ ADC_COUNT_CH ],
 					time[ 16 ],
 					ErrTime[ 16 ];
 
-const uint16_t 		time0[ 16 ] =	{	5,	1,	30,	1,	180, 20, 180,10,	4,	15,	10,	60,	300,	40,	30,	1 };
+const uint16_t 		time0[ 16 ] =	{	5,	1,	30,	1,	180, 20, 180,10,	4,	15,	30,	60,	300,	40,	30,	1 };
 const uint16_t 		ErrTime0[ 16 ]=	{	1,	1,	10,	6, 3,	3,	5,	30,	5,	10,	1,	1,	3,	5,	5,	3 };//se
 
 
@@ -1311,7 +1311,7 @@ void vSetErrorTask( void *pvParameters )
 		{
 			if( !ErrTime[cnt] )
 			{
-				if( !(StatusDG.RegWrk&0x10) )
+				if( !(StatusDG.RegWrk&0x10) && (StatusDG.TOJ>20))
 				{
 					StatusDG.Error |= ((uint16_t)1<<cnt);
 					StatusDG.Led |= 2;
@@ -1396,7 +1396,7 @@ void vSetErrorTask( void *pvParameters )
 						case 13:
 							alarm = true;
 							break;
-						case 14:
+						case 14://lvl maslo
 							alarm = true;
 							StatusDG.RegWrk &= 0x100;
 							StatusDG.RegWrk |= 1<<7;//rashol
@@ -1757,7 +1757,7 @@ void vSetRegWorkTask( void *pvParameters )
 			}
 			else
 			{
-				StatusDG.RegimTime |= 1<<10;//10sec
+				StatusDG.RegimTime |= 1<<10;//30sec
 				if( !time[10] )
 				{
 					StatusDG.RegWrk &= 0x100;
@@ -1770,13 +1770,13 @@ void vSetRegWorkTask( void *pvParameters )
 		
 		if( StatusDG.RegWrk & 0x200 )//PJD start
 		{
-			if(!(StatusDG.RegSDG&4))//peregrev
+			if(!(StatusDG.RegSDG&4))//no peregrev
 			{
 				K10_ON;//PDT
 				K13_ON;//swech
 				StatusDG.RegimTime |= 1<<13;
 			}
-			if( !time[13] )
+			if( !time[13] )//40s
 			{
 				K12_ON;//nasos
 				StatusDG.RegimTime |= 1<<14;
@@ -1863,7 +1863,7 @@ void vLinkPU_SysTask( void *pvParameters )
 						if((!StatusDG.Ndiz) && (!(StatusDG.RegWrk&0x208)))
 						{
 							StatusDG.Led |=1;
-							StatusDG.RegWrk |= 1<<9;
+							StatusDG.RegWrk |= 1<<9;//0x200
 							StatusDG.RegimTime &= ~0x6000;
 						}
 					}
