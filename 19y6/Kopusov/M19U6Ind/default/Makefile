@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2                                -DF_CPU=8000000UL -O1 -funsigned-char -funsigned-bitfields
+CFLAGS += -Wall -gdwarf-2                                      -DF_CPU=8000000UL -O1 -funsigned-char -funsigned-bitfields
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -46,7 +46,7 @@ OBJECTS = M19U6Ind.o
 LINKONLYOBJECTS = 
 
 ## Build
-all: $(TARGET) M19U6Ind.hex M19U6Ind.eep M19U6Ind.lss## Compile
+all: $(TARGET) M19U6Ind.hex M19U6Ind.eep M19U6Ind.lss## Compile size
 M19U6Ind.o: ../M19U6Ind.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 

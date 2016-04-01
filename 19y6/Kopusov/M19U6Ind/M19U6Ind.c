@@ -32,46 +32,45 @@
 
 
 
-const uint8_t   LG19U6[]    = {0, 0,0 ,0 ,17,25,52  ,22 } ,
-				LGNIOBII[]  = {0, 0,0 ,46,41,47,34  ,41   ,42 },
-				KHU[]       = {0, 0,0 ,0 ,43,57,52 },
-				NO[]        = {0, 0,0 ,0 ,46,38,51 },
-				MASLA[]     = {0,0 ,0 ,45,33,50,44  ,33 } ,
-				TOPLIVA[]   = {0, 0,51,47,48,44,41  ,35   ,33} ,
-				PUSKA[]     = {0, 0,0 ,48,52,50,43  ,33 } ,
-				OBOROTOV[]  = {0, 0,47,34,47,49,47  ,51   ,47  ,35 },
-				VOZB[]      = {0, 0,0 ,0 ,35,47,40  ,34   ,14 },
-				OBRAT[]     = {0, 0,0 ,47,34,49,33  ,51 } ,
-				MOCH[]      = {0, 0,0 ,45,47,58,46 },
-				FIRE[]      = {0, 0,0 ,48,47,39,33  ,49  },
-				DOZAPRAVKA[]= {0,37,47,40,33,48,49  ,33   ,35  ,43  ,33},
-				NIZKAYA[]   = {0,0 ,0 ,46,41,40,43  ,33   ,64} ,
-				ISOLYACIA[] = {0,0 ,41,40,47,44,64  ,55   ,41  ,64} ,
-				AVARIA[]    = {0,0 ,0 ,33,35,33,49  ,41   ,64} ,
-				DVIGATELA[] = {0,37,35,41,36,33,51  ,38   ,44  ,64} ,
-				NO_NORMA[]  = {0,0 ,46,38,0 ,46,47  ,49   ,45  ,33} ,
-				NEISPRAV[]  = {0,0 ,46,38,41,50,48  ,49   ,33  ,35  ,14},
-				VG[]        = {0,0 ,0 ,0 ,0 ,35,36 },
-				VS[]        = {0,0 ,0 ,0 ,0 ,35,50 },
-				FVU[]       = {0,0 ,0 ,0 ,53,35,52 },
-				UPPA[]      = {0,0 ,0 ,0 ,52,48,48  ,33}  ,
-				LUKA[]      = {0,0 ,0 ,0 ,44,63,43  ,33}  ,
-				NA_KORP[]   = {0,0 ,46,33,0 ,43,47  ,49   ,48  ,14} ,
-				GOTOV[]     = {0,0 ,0 ,36,47,51,47  ,35   ,46} ,
-				WORK[]      = {0,0 ,0 ,49,33,34,47  ,51   ,33} ,
-				TOJ_8[]     = {0,0 ,0 ,51,47,39,28  ,24   ,50} ,
-				TOJ_37[]    = {0,0 ,0 ,51,47,39,28  ,19   ,23  ,50} ,
-				PROTECT[]   = {0,0 ,0 ,40,33,58,41  ,51   ,33} ,
-				OTKL[]      = {0,0 ,0 ,0 ,47,51,43  ,44}  ,
-				SYSTEM[]    = {0,0 ,50,41,50,51,38  ,45   ,60} ,
-				SETI[]      = {0,0 ,0 ,0 ,50,38,51  ,41}  ,
-				MU[]        = {0,0 ,0 ,0 ,0 ,45,52 },
-				DU[]        = {0,0 ,0 ,0 ,0 ,37,52 },
-				OBRYV[]     = {0,0 ,0 ,47,34,49,60  ,35}  ,
-				SVYAZ_SN[]  = {0,0 ,50,35,64,40,14  ,57   ,50  ,46} ,
-				SVYAZ_MSHU[]= {0,0 ,50,35,64,40,14  ,45   ,58  ,52} ,
-				SVYAZ_RN[]  = {0,0 ,50,35,64,40,14  ,49   ,46} ,
-				PEREGRUZ[]  = {0,0 ,48,38,49,38,36  ,49   ,52  ,40};
+const uint8_t   KHU[]  PROGMEM      = {0, 0,0 ,0 ,43,57,52 },
+				NIOBII[] PROGMEM    = {0, 0,0 ,46,41,47,34  ,41   ,42 },
+				NO[]    PROGMEM     = {0, 0,0 ,0 ,46,38,51 },
+				MASLA[] PROGMEM     = {0,0 ,0 ,45,33,50,44  ,33 } ,
+				TOPLIVA[] PROGMEM   = {0, 0,51,47,48,44,41  ,35   ,33} ,
+				PUSKA[]  PROGMEM    = {0, 0,0 ,48,52,50,43  ,33 } ,
+				OBOROTOV[] PROGMEM  = {0, 0,47,34,47,49,47  ,51   ,47  ,35 },
+				VOZB[] PROGMEM      = {0, 0,0 ,0 ,35,47,40  ,34   ,14 },
+				OBRAT[] PROGMEM     = {0, 0,0 ,47,34,49,33  ,51 } ,
+				MOCH[] PROGMEM      = {0, 0,0 ,45,47,58,46 },
+				FIRE[] PROGMEM      = {0, 0,0 ,48,47,39,33  ,49  },
+				DOZAPRAVKA[] PROGMEM= {0,37,47,40,33,48,49  ,33   ,35  ,43  ,33},
+				NIZKAYA[] PROGMEM   = {0,0 ,0 ,46,41,40,43  ,33   ,64} ,
+				ISOLYACIA[] PROGMEM = {0,0 ,41,40,47,44,64  ,55   ,41  ,64} ,
+				AVARIA[] PROGMEM    = {0,0 ,0 ,33,35,33,49  ,41   ,64} ,
+				DVIGATELA[] PROGMEM = {0,37,35,41,36,33,51  ,38   ,44  ,64} ,
+				NO_NORMA[] PROGMEM  = {0,0 ,46,38,0 ,46,47  ,49   ,45  ,33} ,
+				NEISPRAV[] PROGMEM  = {0,0 ,46,38,41,50,48  ,49   ,33  ,35  ,14},
+				VG[] PROGMEM        = {0,0 ,0 ,0 ,0 ,35,36 },
+				VS[]  PROGMEM       = {0,0 ,0 ,0 ,0 ,35,50 },
+				FVU[] PROGMEM       = {0,0 ,0 ,0 ,53,35,52 },
+				UPPA[] PROGMEM      = {0,0 ,0 ,0 ,52,48,48  ,33}  ,
+				LUKA[] PROGMEM      = {0,0 ,0 ,0 ,44,63,43  ,33}  ,
+				NA_KORP[] PROGMEM   = {0,0 ,46,33,0 ,43,47  ,49   ,48  ,14} ,
+				GOTOV[] PROGMEM     = {0,0 ,0 ,36,47,51,47  ,35   ,46} ,
+				WORK[] PROGMEM      = {0,0 ,0 ,49,33,34,47  ,51   ,33} ,
+				TOJ_8[] PROGMEM     = {0,0 ,0 ,51,47,39,28  ,24   ,50} ,
+				TOJ_37[] PROGMEM    = {0,0 ,0 ,51,47,39,28  ,19   ,23  ,50} ,
+				PROTECT[] PROGMEM   = {0,0 ,0 ,40,33,58,41  ,51   ,33} ,
+				OTKL[] PROGMEM      = {0,0 ,0 ,0 ,47,51,43  ,44}  ,
+				SYSTEM[] PROGMEM    = {0,0 ,50,41,50,51,38  ,45   ,60} ,
+				SETI[] PROGMEM      = {0,0 ,0 ,0 ,50,38,51  ,41}  ,
+				MU[] PROGMEM        = {0,0 ,0 ,0 ,0 ,45,52 },
+				DU[] PROGMEM        = {0,0 ,0 ,0 ,0 ,37,52 },
+				OBRYV[] PROGMEM     = {0,0 ,0 ,47,34,49,60  ,35}  ,
+				SVYAZ_SN[] PROGMEM  = {0,0 ,50,35,64,40,14  ,57   ,50  ,46} ,
+				SVYAZ_MSHU[] PROGMEM= {0,0 ,50,35,64,40,14  ,45   ,58  ,52} ,
+				SVYAZ_RN[] PROGMEM  = {0,0 ,50,35,64,40,14  ,49   ,46} ,
+				PEREGRUZ[] PROGMEM  = {0,0 ,48,38,49,38,36  ,49   ,52  ,40};
 				
 				
 				
@@ -92,16 +91,18 @@ const uint8_t   LG19U6[]    = {0, 0,0 ,0 ,17,25,52  ,22 } ,
 					RegS = 0,
 					Data10[3],
 					NumberIndicator = 0,
-					CtBegin = 0;
+					CtBegin = 0,
+					CtReceive=0,
+					CtTransmit=0;
 					
-	const unsigned int	CtTWCR0=5000;//500;
+	const unsigned int	CtTWCR0 = 5000;//500;
 
-	const uint16_t		CtErrorReceive0=10000;
+	const uint16_t CtErrorReceive0 = 10000;
 	uint8_t	OverlowT1;
 	
-volatile uint8_t	led_reg[21][5],
-					index_char[24],
-					sec=0;
+	volatile uint8_t	led_reg[21][5],
+						index_char[24],
+						sec=0;
 					
 
 
@@ -243,7 +244,8 @@ void ReadKn(void)
 		RegSTemp=R0;	
 	}
 
-void Show_led_str( const uint8_t *str, uint8_t n_str, uint8_t len )
+//void Show_led_str( const uint8_t *str, uint8_t n_str, uint8_t len )
+void Show_led_str( PGM_P addr, uint8_t n_str, uint8_t len )
 {
 	uint8_t cnt_b = 0, i = 0;
 	
@@ -258,7 +260,7 @@ void Show_led_str( const uint8_t *str, uint8_t n_str, uint8_t len )
 		cnt_b = 0;
 		while( cnt_b < len )
 		{
-			index_char[ cnt_b ] = str[ cnt_b ];
+			index_char[ cnt_b ] = pgm_read_byte(&addr[cnt_b]);
 			++cnt_b;
 		}
 	}
@@ -273,7 +275,7 @@ void Show_led_str( const uint8_t *str, uint8_t n_str, uint8_t len )
 		cnt_b = 12;
 		while( i < len )
 		{
-			index_char[ cnt_b ] = str[i];
+			index_char[ cnt_b ] = pgm_read_byte(&addr[i]);
 			++cnt_b;
 			++i;
 		}
@@ -291,7 +293,7 @@ void LoadRomReceive(void)
 	R0 +=RamReceive[R1];
 	if(R0==RamReceive[0])
 	{
-		++TestTwi;
+		// ++TestTwi;
 		for(R0=1;R0<=10;++R0)
 			RomReceive[R0]=RamReceive[R0];
 
@@ -311,7 +313,7 @@ void ReceiveTransmitSlave(void)
 		//	++TestTwi;
 		CtReceive=10;
 	}
-	else    if((TWSR & 0xf8)==0x80)//Data Slave Receive
+	else if((TWSR & 0xf8)==0x80)//Data Slave Receive
 	{
 		//	TestTwi=CtReceive;
 		RamReceive[CtReceive]=TWDR;
@@ -331,8 +333,6 @@ void ReceiveTransmitSlave(void)
 		CtTransmit=10;
 		EnableLoad=0;
 		TWDR=RegTransmit[CtTransmit];
-
-
 	}
 	else if((TWSR & 0xf8)==0xb8)//Data Slave Transmit
 	{
@@ -349,6 +349,14 @@ void ReceiveTransmitSlave(void)
 	}
 	TWCR |=(1<<TWINT);
 } 
+
+void LoadControlSum(void)
+{
+	unsigned char R0;
+	RegTransmit[0]=0;
+	for(R0=1;R0<=10;++R0)
+		RegTransmit[0] +=RegTransmit[R0];
+}
 
 void LoadRegTransmit(void)
 {
@@ -370,15 +378,51 @@ void LoadRegTransmit(void)
 	RegTransmit[2]=RegTransmitUsart[12];*/
 }
 
-	
-//==================================================================================
-//==================================================================================
-//==================================================================================
-	
-	
-int main(void)
+void IndicatorTest(void)
 {
-	uint8_t cnt_b = 0, CtStart=0, indicator=0; 
+	// unsigned char R1;
+	// unsigned int R0;		
+	// SetCursor(0,0);
+	// for(R1=1;R1<=5;++R1)
+	// {
+		// HexDec(RomReceive[R1]);
+		// R0=500;
+		// while(R0--)         _WDR(); 
+		// SPDR=Data10[0];
+		// R0=500;
+		// while(R0--)         _WDR(); 
+		// SPDR=Data10[1];
+		// R0=500;
+		// while(R0--)         _WDR(); 
+		// SPDR=Data10[2];
+	// }
+	// SetCursor(0,1);
+	// for(R1=6;R1<=10;++R1)
+	// {
+		// HexDec(RomReceive[R1]);
+		// R0=500;
+		// while(R0--)         _WDR(); 
+		// SPDR=Data10[0];
+		// R0=500;
+		// while(R0--)         _WDR(); 
+		// SPDR=Data10[1];
+		// R0=500;
+		// while(R0--)         _WDR(); 
+		// SPDR=Data10[2];
+	// }
+
+}	
+	
+//==================================================================================
+//==================================================================================
+//==================================================================================
+	
+void main(void) __attribute__((__noreturn__));
+	
+//int main(void)
+void main(void)
+{
+	uint8_t cnt_b = 0, CtStart=0; 
 	
 	DDRA = 0x3f;
 
@@ -387,7 +431,7 @@ int main(void)
 	PORTB = 0x00;
 
 	DDRC = 0x00;
-	PORTC = 0x00;
+	PORTC = 0x03;//poll up SDA SCL
 
 	DDRD = 0x00;
 	PORTD = 0x00;/*imp=off,Reset=off*/
@@ -426,8 +470,8 @@ int main(void)
 	
 	sei();
 	
-
-	Show_led_str(LG19U6,0,8);
+	Show_led_str((PGM_P)KHU,0,7);
+	Show_led_str((PGM_P)NIOBII,1,9);
 	
 	RomReceive[1]=2; 
 	RomReceive[2]=29;//3;  
@@ -444,20 +488,23 @@ int main(void)
 	{
 		wdt_reset();
 		ReadKn();
-		_delay_ms(50);
+	//	_delay_ms(50);
 		
-		if(Error & 0x80)
+		// if(Error & 0x80)
+			// {
+				// if(sec>1)
+				// {
+					// //IndOtkazSHSN();
+					// sec=0;
+				// }
+			// }
+		// else 
+			if(!RomReceive[1])
 			{
 				if(sec>1)
 				{
-					IndOtkazSHSN();
-					sec=0;
-				}
-			}
-		else if(!RomReceive[1])
-			{
-				if(sec>1)
-				{
+					clear_lcd();
+					Show_led_str((PGM_P)OTKL,0,8);
 					IndicatorTest();
 					sec=0;
 				}
@@ -472,178 +519,169 @@ int main(void)
 				switch(RomReceive[NumberIndicator])
 				{
 				case 1:
-					IndNoTopliva();
+				//	IndNoTopliva();
 					break;
 				case 2:
-					IndT8Gr();
+					//IndT8Gr();
 					break;
 				case 3:
-					IndT37Gr();
+					//IndT37Gr();
 					break;
 
 				case 4:
-					IndZashitaOff();
+					//IndZashitaOff();
 					break;
 				case 5:
-					IndOtkazLuk();
+					//IndOtkazLuk();
 					break;
 
 				case 6:
-					IndLowIzol();
+					//IndLowIzol();
 					break;
 				case 7:
-					IndNoPusk();
+					//IndNoPusk();
 					break;
 				case 8:
-					IndNoLinkMSHU();
+					//IndNoLinkMSHU();
 					break;
 
 				case 9:
-					IndNoOborotov();
+					//IndNoOborotov();
 					break;
 
 				case 11:
-					IndErrorU();
+					//IndErrorU();
 					break;
 
 				case 13:
-					IndErrorKG();
+					//IndErrorKG();
 					break;
 
 				case 15:
-					IndNoLinkRU();
+					//IndNoLinkRU();
 					break;
 				case 16:
-					IndObratnajaP();
+					//IndObratnajaP();
 					break;
 
 				case 17:
-					IndPeregruzKG();
+					//IndPeregruzKG();
 					break;
 
 
 				case 19:
-					IndPogar();
+					//IndPogar();
 					break;
 
 				case 20:
-					IndErrorKS();
+					//IndErrorKS();
 					break;
 
 				case 21:
-					IndUKorpus();
+					//IndUKorpus();
 					break;
 
 				case 23:
-					IndErrorSet();
+					//IndErrorSet();
 					break;
 				case 24:
-					IndNoMasla();
+					//IndNoMasla();
 					break;
 				case 25:
-					IndDozapravkaTopliva();
+					//IndDozapravkaTopliva();
 					break;
 				case 26:
-					IndDozapravkaMasla();
+					//IndDozapravkaMasla();
 					break;
 				case 27:
-					IndOtkazFVU();
+					//IndOtkazFVU();
 					break;
 				case 28:
-					IndAvarDvig();
+					//IndAvarDvig();
 					break;
 				case 29:
-					IndGotovMU();
+					//IndGotovMU();
 					break;
 				case 30:
-					IndGotovDU();
+					//IndGotovDU();
 					break;
 
 				case 31:
-					IndRabota();
+					//IndRabota();
 					break;
 
 
 				case 32:
-					IndNoLinkSN();
+					//IndNoLinkSN();
 					break;
 				case 33:
-					IndOtkazPZA();
+					//IndOtkazPZA();
 					break;
 				default:break;
 				
 				}
 			}
 		
+		if(EnableLoad)
+		{
+			LoadRegTransmit();
+			LoadControlSum();
+		}
+		
 		if(TWCR & 0x80)
 		{
 			++TestTWI;
+			USART_Transmit('0'+TestTWI);
+			USART_Transmit('\n');
+			USART_Transmit('\r');
 			ReceiveTransmitSlave();
 		}
-		
+	
 		if(!CtErrorLink[0])//ErrorLink;
 		{
 			//	++TestTwi;
 			//INIT TWI;
-			TWBR=0;//F TWI
-			TWAR=0;
-			TWCR =0;
-			TWSR=0xf8;
-			CtStart=50;
-			while(CtStart--)	_WDR();
-			TWBR=0x7f;//F TWI
-			TWAR=(NumberLink<<1)+4;
-			TWCR =(1<<TWEA)|(1<<TWEN);
+			TWBR = 0;//F TWI
+			TWAR = 0;
+			TWCR = 0;
+			TWSR = 0xf8;
+			CtStart = 50;
+			while(CtStart--)	
+				wdt_reset();
+			TWBR = 0x7f;//F TWI
+			TWAR = 4;
+			TWCR = (1<<TWEA)|(1<<TWEN);
 			//   TWCR |=(1<<TWINT);
 			CtErrorLink[0]=CtErrorLink0[0];
 
 			CtStart=200;
-			while(CtStart--)	_WDR();
+			while(CtStart--)
+				wdt_reset();
 		}
 	}
 }
 	
 	
-	SIGNAL(SIG_OVERFLOW1)/*65ms*/
+ SIGNAL(SIG_OVERFLOW1)/*65ms*/
 	{
 		static uint8_t cnt=0;
 		
-		if(cnt>15)
+		if( cnt>15 )
 		{
-			cnt =0;
+			cnt = 0;
 			++sec;
 		}
 		else
 			++cnt;
 		
 		
-		if(CtErrorLink[1])
+		if( CtErrorLink[1] )
 			--CtErrorLink[1];
 		else
-			Error |=0x80;
-		
-		if(CtChangeInd)
-			--CtChangeInd;
-		else
-		{
-			if(TestInd)
-				--TestInd;
-			else
-				TestInd=999;
-			
-			CtChangeInd=5000;
-			
-	M1:		if(NumberIndicator<=9)
-				++NumberIndicator;
-			else
-				NumberIndicator=2;
-		
-			if((!RomReceive[NumberIndicator])&&(NumberIndicator !=2))
-				goto M1;
-		}
+			Error |= 0x80;
 	}
 	
-	SIGNAL(SIG_OVERFLOW0)//2ms
+ SIGNAL(SIG_OVERFLOW0)//2ms
 	{
 		static uint8_t 	cnt_row = 0;
 		uint8_t reg = 21;
