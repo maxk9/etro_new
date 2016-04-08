@@ -1008,7 +1008,6 @@ int main(void)
 		{
 			++TestTWI;
 			ReceiveTransmitSlave();
-
 		}
 
 		if(!CtErrorLink[0])//ErrorLink;

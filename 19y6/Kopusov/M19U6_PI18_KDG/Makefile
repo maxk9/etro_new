@@ -1,11 +1,11 @@
 ###############################################################################
-# Makefile for the project M19U6Ind
+# Makefile for the project M19U6_PI18_KDG
 ###############################################################################
 
 ## General Flags
-PROJECT = M19U6Ind
+PROJECT = M19U6_PI18_KDG
 MCU = atmega8535
-TARGET = M19U6Ind.elf
+TARGET = M19U6_PI18_KDG.elf
 CC = avr-gcc
 
 CPP = avr-g++
@@ -15,8 +15,9 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2                                      -DF_CPU=8000000UL -O1 -funsigned-char -funsigned-bitfields
+CFLAGS += -Wall -gdwarf-2 -std=gnu99           -DF_CPU=8000000UL -O1 -funsigned-char -funsigned-bitfields -fpack-struct
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
+CFLAGS += -o $(@)
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
@@ -25,8 +26,7 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 
 ## Linker flags
 LDFLAGS = $(COMMON)
-LDFLAGS +=  -Wl,-Map=M19U6Ind.map
-
+LDFLAGS +=  -Wl,-Map=M19U6_PI18_KDG.map
 
 ## Intel Hex file production flags
 HEX_FLASH_FLAGS = -R .eeprom -R .fuse -R .lock -R .signature
@@ -37,17 +37,20 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 
 ## Include Directories
-INCLUDES = -I"C:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr" -I"D:\kopusov\pgm\19y6\Kopusov\M19U6Ind\." 
+INCLUDES = -I"C:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr" -I"D:\kopusov\pgm\19y6\Kopusov\M19U6_PI18_KDG\." 
 
 ## Objects that must be built in order to link
-OBJECTS = M19U6Ind.o 
+OBJECTS = main.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
 
+
+
+
 ## Build
-all: $(TARGET) M19U6Ind.hex M19U6Ind.eep M19U6Ind.lss## Compile size
-M19U6Ind.o: ../M19U6Ind.c
+all: $(TARGET) M19U6_PI18_KDG.hex M19U6_PI18_KDG.eep M19U6_PI18_KDG.lss## Compile
+main.o: ../main.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link
@@ -62,11 +65,13 @@ $(TARGET): $(OBJECTS)
 
 %.lss: $(TARGET)
 	avr-objdump -h -S $< > $@
-
+	C:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-size.exe -C --mcu=$(MCU) d:\kopusov\pgm\19y6\Kopusov\M19U6_PI18_KDG\default\$(TARGET)
+	
+	
 ## Clean target
 .PHONY: clean
 clean:
-	-rm -rf $(OBJECTS) M19U6Ind.elf dep/* M19U6Ind.hex M19U6Ind.eep M19U6Ind.lss M19U6Ind.map
+	-rm -rf $(OBJECTS) M19U6_PI18_KDG.elf dep/* M19U6_PI18_KDG.hex M19U6_PI18_KDG.eep M19U6_PI18_KDG.lss M19U6_PI18_KDG.map
 
 
 ## Other dependencies

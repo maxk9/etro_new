@@ -227,7 +227,7 @@ volatile BaseType_t	ADC_Arr[ ADC_COUNT_CH ],
 					time[ 16 ],
 					ErrTime[ 16 ];
 
-const uint16_t 		time0[ 16 ] =	{	5,	1,	30,	1,	180, 20, 180,10,	4,	15,	30,	60,	300,	40,	30,	1 };
+const uint16_t 		time0[ 16 ] =	{	5,	1,	30,	1,	180, 20, 180,10,	4,	15,	60,	60,	300,	40,	30,	1 };
 const uint16_t 		ErrTime0[ 16 ]=	{	1,	1,	10,	6, 3,	3,	5,	30,	5,	10,	1,	1,	3,	5,	5,	3 };//se
 
 
@@ -1214,14 +1214,16 @@ void vKeyHandlerTask( void *pvParameters )
 			
 			if(StatusDG.RegSDG & 0x200)//lvl  OJ
 			{
-				StatusDG.RegimError |= 1<<8;
+				if(StatusDG.TOJ>5)
+					StatusDG.RegimError |= 1<<8;
 			}
 			else
 				StatusDG.RegimError &= ~(1<<8);
 			
 			if(StatusDG.RegSDG & 0x400)//lvl M 
 			{
-				StatusDG.RegimError |= 1<<14;
+				if(StatusDG.TOJ>5)
+					StatusDG.RegimError |= 1<<14;
 			}
 			else
 				StatusDG.RegimError &= ~(1<<14);
@@ -1311,7 +1313,7 @@ void vSetErrorTask( void *pvParameters )
 		{
 			if( !ErrTime[cnt] )
 			{
-				if( !(StatusDG.RegWrk&0x10) && (StatusDG.TOJ>20))
+				if( !(StatusDG.RegWrk&0x10))
 				{
 					StatusDG.Error |= ((uint16_t)1<<cnt);
 					StatusDG.Led |= 2;
@@ -1398,9 +1400,12 @@ void vSetErrorTask( void *pvParameters )
 							break;
 						case 14://lvl maslo
 							alarm = true;
-							StatusDG.RegWrk &= 0x100;
-							StatusDG.RegWrk |= 1<<7;//rashol
-							StatusDG.RegimTime |= 1<<7;
+							if(StatusDG.RegWrk&0x40)
+							{
+								StatusDG.RegWrk &= 0x100;
+								StatusDG.RegWrk |= 1<<7;//rashol
+								StatusDG.RegimTime |= 1<<7;
+							}
 							break;
 						case 15://FIRE
 							K1_OFF;
@@ -1583,7 +1588,7 @@ void vSetRegWorkTask( void *pvParameters )
 					VOZB_ON;
 					
 					
-					if(StatusDG.TOJ < 70)
+					if(StatusDG.TOJ < 70)//<40C
 					{
 						StatusDG.RegWrk &= ~((2)|(4)|(1));
 						StatusDG.RegWrk |= 0x20;
@@ -1639,7 +1644,7 @@ void vSetRegWorkTask( void *pvParameters )
 		
 		if( StatusDG.RegWrk & 0x08 )//PJD WORK
 		{
-			if(StatusDG.TOJ>70)
+			if(StatusDG.TOJ>105)	//75C
 			{
 				K12_OFF;//nasos
 				K10_OFF;//PDT
@@ -1757,7 +1762,7 @@ void vSetRegWorkTask( void *pvParameters )
 			}
 			else
 			{
-				StatusDG.RegimTime |= 1<<10;//30sec
+				StatusDG.RegimTime |= 1<<10;//60sec
 				if( !time[10] )
 				{
 					StatusDG.RegWrk &= 0x100;
