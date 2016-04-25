@@ -5,32 +5,26 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>	
-
+#include <ctype.h>
 #include <string.h>
 #include <avr/pgmspace.h>
-
-
-const unsigned int UMaxProt=252;
-const unsigned int UMinProt=190;
-
-const unsigned char UNomMax=254;
-const unsigned char UNomMin=170;
+unsigned    char    TestPeriod;
+unsigned    char    RegimTest;
+unsigned    char    TestTWI;
 unsigned    int    KoefU;
 
-unsigned char CtEnableEeprom;
+unsigned int CtEnableEeprom;
 unsigned    char    CtLinkTWI;
 unsigned    char    SregTemp;
 unsigned char	CtTransmitUsart;
 
 unsigned char	StatizmVozb;
-unsigned char	WellPeriod;
 /*
 0	Gashenie=1/Vozb=0
 1	Paralel=1/Avtonom=0
 */
 
-unsigned char	DeltaUITest;
+unsigned int	DeltaUITest;
 
 
 
@@ -90,16 +84,16 @@ const unsigned char low[256] PROGMEM={0,0xc0,0xc1,1,0xc3,0x3,0x2,0xc2,0xc6,0x6,0
 	0x80,0x40};	
 
 
-
-unsigned char CtTime[2];
+unsigned char RegimTime;
+unsigned char CtTime;
 const unsigned char CtTime0=100;
 
 unsigned char AdEnd;
 unsigned char NumberAdSlow;
 unsigned char ChangeNumberAd;
 unsigned int AdTempMin;
-volatile	unsigned long AdTemp[6];
-unsigned    long	AdResult[6];
+volatile	unsigned long AdTemp[7];
+unsigned    long	AdResult[7];
 unsigned    char	NumberAd;
 unsigned    int	CtAd;
 static const unsigned    int	    CtAd0=1024;
@@ -108,16 +102,16 @@ static const unsigned    int	    CtAd0=1024;
 unsigned char ChangeFNom;
 unsigned char CtChangeUNom;
 const unsigned int DeltaUDop=10;
-const unsigned int DeltaFDop=200;//200;
+const unsigned int DeltaFDop=200;
 const unsigned int DeltaFDopSet=200;
-const unsigned int DeltaULineDop=30;//40;
+const unsigned int DeltaULineDop=40;
 
 
 unsigned char NumberRegim;
 
 
-unsigned char UNom;
-unsigned char UNomConst;
+unsigned int UNom;
+unsigned int UNomConst;
 unsigned int UGen;
 unsigned int USet;
 unsigned int ULine;
@@ -125,11 +119,12 @@ unsigned int ULineGenOld;
 unsigned int ULineSetOld;
 unsigned int ULineGen;
 unsigned int ULineSet;
+unsigned int ULineLine;
 
 unsigned char CtSetOff;
 unsigned char StatusKontaktorSet;
 unsigned char StatusKontaktorGen;
-unsigned char KStatizm;
+unsigned int KStatizm;
 
 
 unsigned char CtKn;
@@ -163,10 +158,10 @@ unsigned    int             Error;
 unsigned    char RegimError;
 unsigned    char	CtError[13];
 static const unsigned  char CtError0[13]=
-{125,125,125,125,50,50,50,125,4,4,14,20,20};
+{250,250,250,250,100,100,100,250,30,30,30,100,100};
 unsigned    char RegimClearError;
 unsigned    char	CtClearError[4];
-static const unsigned  char CtClearError0=10;
+static const unsigned  char CtClearError0=20;
 
 /*	Error
 0	No on set
@@ -222,7 +217,13 @@ void    WriteEeprom(unsigned char Arg4,unsigned char Arg5)
 	while(bit_is_set(SPMCR,SPMEN))
 	;
 }
+void    WriteEepromWord(unsigned char  Arg4,unsigned int Arg6)
 
+{
+	WriteEeprom(Arg4,Arg6);
+	Arg6=Arg6>>8;
+	WriteEeprom((Arg4+1),Arg6);
+}
 unsigned char    ReadEeprom(unsigned char Arg6)
 
 {		 	
@@ -447,8 +448,7 @@ void    ReceiveTransmitMaster(void)
 	TWCR=(1<<TWINT)|(1<<TWEN)|(1<<TWSTO);
 
 	while(R1)
-	{
-		_WDR();
+	{_WDR();
 		--R1;
 	}
 
@@ -562,166 +562,190 @@ void    ReadKnPB6(void)
 
 }
 
-
-void	ChangeFNomSetLine(void)
+void InitAd   (void)
 {
-
-	ChangeFNom=0;
-	if(Period[1]>(Period[2]+100))
-	ChangeFNom=0x80;
-	else 
-	ChangeFNom=0x4;
+	//    ADMUX=0xc0;//2.56=Ref
+	//    ADMUX |=0x12;//18 chanel
+	ADMUX=0xd2;//2.56=Ref
+	SFIOR=0;//SFIOR & 0x1f;//start from end AD
+	CtAd=CtAd0;
+	NumberAd=6;
+	ADCSRA=0;
+	ADCSRA |=(1<<ADEN);/*enable AD*/
+	ADCSRA |=(1<<ADPS2);
+	ADCSRA |=(1<<ADPS1);
+	ADCSRA |=(1<<ADPS0); /*32*/	 		
+	ADCSRA |=(1<<ADIE);/* enable interrupt*/
+	ADCSRA |=(1<<ADSC);/* Start*/
 }
-void	ChangeFNomGenLine(void)
 
-{
-
-	ChangeFNom=0;
-	if(Period[0]>(Period[2]+50))
-	ChangeFNom=0x4;
-	else 
-	ChangeFNom=0x80;
-}
 void	LoadRegInd(void)
 {
-	unsigned char R0;
-	unsigned char R1;
+
 	unsigned char R2;
-	unsigned char R3;
-	unsigned char R4;
-	RegTransmit[1][0]=2;
-	
-	R0=RomReceive[7][1];
-	R1=RomReceive[6][1] & 0xf8;
-	R4=RomReceive[3][1];
-	R2=0;
 
-	R3=0;
-	R2=0;
-	if(R0 & 4)
-	R2=4;//Zashita=off
-	RegTransmit[3][0]=R2;
+	RegTransmit[1][0]=0;
+	RegTransmit[2][0]=RegimTest;
 
-	R2=0;
-	if(R1 & 0x20)
+
+
+
+	switch(RegimTest)
 	{
-		R2=21;//U Korpus
+	case 0:	if(Error & 0x300)
+		RegTransmit[3][0]=Error>>8;
+		else
+		RegTransmit[3][0]=123;
+		RegTransmit[4][0]=UGen;
+		RegTransmit[5][0]=USet;
+		RegTransmit[6][0]=ULine;
+		RegTransmit[7][0]=ULineGen>>1;;
+		RegTransmit[8][0]=ULineSet>>1;
+		RegTransmit[9][0]=ULineLine>>1;
+		RegTransmit[10][0]=AdResult[6]>>2;
+		PORTC |=0xfc;
+		break;
+	case 1:
+		
+		RegTransmit[3][0]=Period[0]>>8;
+		RegTransmit[4][0]=Period[1]>>8;
+		RegTransmit[5][0]=Period[2]>>8;
+		RegTransmit[6][0]=PIND & 1;
+		RegTransmit[7][0]=KoefU;
+		RegTransmit[8][0]=KoefU>>8;
+		PORTD &=0xfd;
+		RegTransmit[9][0]=RomReceive[1][1];
+		RegTransmit[10][0]=RomReceive[2][1];
+		PORTC |=0xf8;
+		PORTC &=0xfb;
+		break;
+	case 2:
+		RegTransmit[3][0]=Period[3]>>8;//0;
+		RegTransmit[4][0]=0;
+		RegTransmit[5][0]=0;
+		RegTransmit[6][0]=0;
 
+		RegTransmit[7][0]=RomReceive[3][1];
+		RegTransmit[8][0]=PIND & 1;
+		PORTD |=2;
+		RegTransmit[9][0]=RomReceive[1][1];
+		RegTransmit[10][0]=RomReceive[2][1];
+		PORTC |=0xf4;
+		PORTC &=0xf7;
+
+		break;
+	case 3:
+		RegTransmit[3][0]=0;
+		RegTransmit[4][0]=0;
+		RegTransmit[5][0]=0;
+		RegTransmit[6][0]=0;
+		RegTransmit[8][0]=0;
+		RegTransmit[7][0]=RomReceive[3][1];
+		RegTransmit[9][0]=RomReceive[1][1];
+		RegTransmit[10][0]=RomReceive[2][1];
+		PORTC |=0xec;
+		PORTC &=0xef;
+		break;
+	case 4:
+		RegTransmit[3][0]=0;
+		RegTransmit[4][0]=0;
+		RegTransmit[5][0]=0;
+		RegTransmit[6][0]=0;
+		RegTransmit[8][0]=0;	
+		RegTransmit[7][0]=RomReceive[3][1];
+		RegTransmit[9][0]=RomReceive[1][1];
+		RegTransmit[10][0]=RomReceive[2][1];	
+		PORTC |=0xdc;
+		PORTC &=0xdf;
+		break;
+	case 5:
+		RegTransmit[3][0]=0;
+		RegTransmit[4][0]=0;
+		RegTransmit[5][0]=0;
+		RegTransmit[6][0]=0;
+		RegTransmit[8][0]=0;
+		RegTransmit[7][0]=RomReceive[3][1];
+		RegTransmit[9][0]=RomReceive[1][1];
+		RegTransmit[10][0]=RomReceive[2][1];	
+		PORTC |=0xbc;
+		PORTC &=0xbf;
+		break;
+	case 6:
+		RegTransmit[3][0]=0;
+		RegTransmit[4][0]=0;
+		RegTransmit[5][0]=0;
+		RegTransmit[6][0]=0;
+		RegTransmit[8][0]=0;
+		RegTransmit[7][0]=RomReceive[3][1];
+		RegTransmit[9][0]=RomReceive[1][1];
+		RegTransmit[10][0]=RomReceive[2][1];	
+		PORTC |=0x7c;
+		PORTC &=0x7f;
+		break;
+	case 7:
+		RegTransmit[3][0]=0;
+		RegTransmit[4][0]=0;
+		RegTransmit[5][0]=0;
+		RegTransmit[6][0]=0;
+		RegTransmit[8][0]=0;
+		RegTransmit[7][0]=RomReceive[3][1];
+		RegTransmit[9][0]=RomReceive[1][1];
+		RegTransmit[10][0]=RomReceive[2][1];	
+		break;
+	case 8:
+		RegTransmit[3][0]=0;
+		RegTransmit[4][0]=0;
+		RegTransmit[5][0]=0;
+		RegTransmit[6][0]=0;
+		RegTransmit[8][0]=0;
+		RegTransmit[7][0]=RomReceive[3][1];
+		RegTransmit[9][0]=RomReceive[1][1];
+		RegTransmit[10][0]=RomReceive[2][1];	
+		break;
+	case 9:
+		RegTransmit[3][0]=0;
+		RegTransmit[4][0]=0;
+		RegTransmit[5][0]=0;
+		RegTransmit[6][0]=0;
+		RegTransmit[8][0]=0;
+		RegTransmit[7][0]=RomReceive[3][1];
+		RegTransmit[8][0]=0;
+		RegTransmit[9][0]=RomReceive[1][1];
+		RegTransmit[10][0]=RomReceive[2][1];	
+		break;
+
+	default:break;
 	}
-	else if(R0 & 8)
-	{ 
-		R2=6;//Izol
+	R2=RegimTest;
 
-	}
-	if(R2)
-	R3=1;
-	RegTransmit[4][0]=R2;
-
-
-	R2=0;	
-	if(R4 & 2)
-	{
-		R2=32;//no link shsn
-		R3=1;
-	}
-	else if(R1 & 0x40)//Otkaz Luk
+	if(RegS & 1)
+	R2=0;
+	else if(RegS & 2)
+	R2=1;
+	else if(RegS & 4)
+	R2=2;
+	else if(RegS & 8)
+	R2=3;
+	else if(RegS & 0x10)
+	R2=4;
+	else if(RegS & 0x20)
 	R2=5;
-	RegTransmit[5][0]=R2;
-
-	R2=0;		
-	if(R0 & 0x20)
-	R2=19;//Pogar
-	else if(R0 & 0x10)
-	R2=28;//Avaria dvig
-	else if(R4 & 4)
-	R2=9;//no oborotov
-	else if(RomReceive[1][1] & 0x80)
-	R2=33;//Otkaz PZA
-
-	if(R2)
-	R3=1;
-
-	
-	RegTransmit[6][0]=R2;
-
-
-	R2=0;
-	if(R0 & 0x80)
-	{
-		R2=1;//No topliva
-		R3=1;
-	}		
-	else if(R0 & 0x40)
-	R2=25;//Dozapravka topliva
-	RegTransmit[7][0]=R2;
-
-	R2=0;
-	if(Error & 0x400)//USART
-	R2=15;
-	else if(Error & 0x80)
-	R2=11;//UGen
-	else if(Error & 0x40)
-	R2=23;//Set no norma
-	RegTransmit[8][0]=R2;
-	if(R2)
-	R3=1;
-	
-	R2=0;
-	if(Error & 0x800)//Peregruz
-	R2=17;		
-	else if(Error & 0xc)
-	R2=13;//KG
-	else if(Error & 0x1000)
-	R2=16;//Obrat P
-	else if(Error & 3)
-	R2=20;//KSet
-
-
-	RegTransmit[9][0]=R2;
-	if(R2)
-	R3=1;	
-	R2=0;
-	if(R1 & 0x10)
-	{
-		R2=24;//No Masla
-		R3=1;
-	}
-	else if(R1 & 0x8)
-	R2=26;//Dozapravka masla
-	RegTransmit[10][0]=R2;
-
-	R2=0;
-	if(R4 & 1)//no link MSHU
+	else if(RegS & 0x40)
+	R2=6;
+	else if(RegS & 0x80)
+	R2=7;
+	else if(RegS & 0x100)
 	R2=8;
-	else
-	{
-		if(R0 & 1)
-		R2=2;//T<8
-		else if(R0 & 2)
-		R2=3;//T<37
-	}
-
-	if(R2)
-	R3=1;
+	else if(RegS & 0x200)
+	R2=9;
 
 
+	RegimTest=R2;
+	if(RegimTest>9)
+	RegimTest=9;
 
 
-
-	if(!R3)
-	{
-		if(RomReceive[1][1] & 2)//work
-		R2=31;
-		else			
-		{
-			if((!NumberRegim)||(NumberRegim==5))
-			R2=30;//gotov DU
-			else
-			R2=29;//Gotov MU
-		}
-
-	}
-	RegTransmit[2][0]=R2;
+	//	RegTransmit[2][0]=TestTWI;//CtError[8];//R2;
 }
 
 
@@ -741,7 +765,7 @@ void    LoadRegTransmit(void)
 		R0 &=0x7b;
 		R0 |=ChangeFNom;
 	}
-	RegTransmit[1][1]=R0;
+	RegTransmit[1][1]=RegimTest;
 	RegTransmit[2][1]=RegS>>8;
 	R1=RomReceive[1][0];
 	R1 &=0x7;
@@ -751,9 +775,9 @@ void    LoadRegTransmit(void)
 	R1 |=0x80;
 	RegTransmit[3][1]=R1;
 	R1=0;
-	if(ULine>150)
+	if((ULine>190)&&(ULine<250))
 	R1|=1;
-	if(Error & 0x1c8c)
+	if(Error & 0x8c)
 	R1 |=0x80;
 	if((!(Error & 0x40))&&(USet>180))
 	R1 |=0x20;
@@ -766,8 +790,6 @@ void    LoadRegTransmit(void)
 	RegTransmit[5][1]=R1;
 	R2=AdResult[5];
 	R2=R2>>2;
-	if(R2>=5)
-	R2=R2-5;
 	RegTransmit[6][1]=R2;
 
 }    
@@ -775,7 +797,7 @@ void    LoadRegTransmit(void)
 void    SetError(void)
 {
 	unsigned char R0;   
-	for(R0=0;R0<=12;++R0)
+	for(R0=0;R0<=11;++R0)
 	{
 		if(!(CtError[R0]))
 		Error |=(1<<R0);
@@ -790,7 +812,7 @@ void    ResetError(void)
 	unsigned char R0;
 	Error=0;
 	RegimError=0;      
-	for(R0=0;R0<=12;++R0)
+	for(R0=0;R0<=11;++R0)
 	CtError[R0]=CtError0[R0];
 
 
@@ -838,15 +860,15 @@ unsigned char ProgramPageLow(unsigned int R0)
 }
 
 
-/*	void	 CRCReceive(unsigned char R0)
-	{
+void	 CRCReceive(unsigned char R0)
+{
 
 	unsigned char R2;
 	R2=RCHReceive^ R0;//TransmitIrbi[R4][R5][(R0++)];
 	RCHReceive=RCLReceive^ ProgramPageHigh(R2);
 	RCLReceive=ProgramPageLow(R2);
 
-	}*/
+}
 
 void	ResetErrorLinkUsart(void)
 {
@@ -861,15 +883,15 @@ void	ReceiveUsart(void)
 	unsigned char R0;
 	unsigned char R1;
 	unsigned char R2;
-	//	unsigned char R3;
+	unsigned char R3;
 	unsigned char R4;
 
-	//	R3=CtReceiveUsart;
+	R3=CtReceiveUsart;
 	if(UCSRA &(1<<RXC))
 	{
 		R1=UCSRA;
-		//	R2=UCSRB;
-		//	R4=UCSRC;
+		R2=UCSRB;
+		R4=UCSRC;
 		R0=UDR;
 		if(R1 & 0x1c)//error
 		{
@@ -877,47 +899,58 @@ void	ReceiveUsart(void)
 			ResetErrorLinkUsart();
 			return;
 		}
-		/*	if(CtReceiveUsart>9)
-			{
+		if(R3>9)
+		{
 
-	ResetErrorLinkUsart();
-	return;
-			}*/
+			ResetErrorLinkUsart();
+			return;
+		}
 
-		//	RamReceiveUsart[R3]=R0;
+		RamReceiveUsart[R3]=R0;
+		if(R3<=5)
+		{
+			++R3;
+			CRCReceive(R0);
+
+			CtReceiveUsart=R3;
 
 
-		
-		
-		if(CtReceiveUsart<=6)
+
+
+		}
+		else
 		{
 			
-			++CtReceiveUsart;
-		}
-
-		else
-		{	
 			
-			//	 if((RamReceiveUsart[6]==RCHReceive)&&(RamReceiveUsart[7]==RCLReceive))
+			if(R3<=6)
 			{
-
-
-				/*	for(R2=0;R2<=5;++R2)
-						{
-	RomReceiveUsart[R2][RamReceiveUsart[3]]=RamReceiveUsart[R2];
-	RamReceiveUsart[R2]=R2;
-						}*/
-				CtError[10]=CtError0[10];
-
-				CtNoReceiveUsart=29;
+				++R3;
+				CtReceiveUsart=R3;
 			}
 
-			//	CtReceiveUsart=0;
-			//	RCHReceive=0xff;
-			//	RCLReceive=0xff;
+			else
+			{	
+				
+				if((RamReceiveUsart[6]==RCHReceive)&&(RamReceiveUsart[7]==RCLReceive))
+				{
 
+
+					for(R2=0;R2<=5;++R2)
+					{
+						RomReceiveUsart[R2][RamReceiveUsart[3]]=RamReceiveUsart[R2];
+						RamReceiveUsart[R2]=R2;
+					}
+					CtError[10]=CtError0[10];
+
+					CtNoReceiveUsart=19;
+				}
+
+				CtReceiveUsart=0;
+				RCHReceive=0xff;
+				RCLReceive=0xff;
+
+			}
 		}
-		
 
 
 	}
@@ -949,118 +982,10 @@ unsigned int CalcDeltaU(unsigned char R1)
 
 
 
-void	KGenOff(void)
-{
-
-	PORTC |=0x4;//On=off
-
-	if(StatusKontaktorGen & 2)//NR was ON
-	{
-		if((UGen>=UMinProt)&&(UGen<=UMaxProt))
-		{
-			RegimClearError |=8;
-
-			if(CtClearError[3])
-			PORTC &=0xf7;//off=ON
-			else
-			{
-				PORTC |=0x8;//off=OFF
-				StatusKontaktorGen &=0xfd;
-			}
-
-		}
-		else
-		PORTC |=0x8;//off=OFF
-	}
-	else
-	{
-		if(RomReceive[1][1] & 2)//KG=on
-		PORTC &=0xf7;//off=ON
-		else
-		PORTC |=0x8;//off=OFF
-	}
-}
-void	KGenOn(void)
-{
-
-	PORTC |=0x8;//off=OFF
-	if(RomReceive[1][1] & 2)
-	PORTC |=0x4;//On=off
-	else
-	{
-		PORTC &=0xfb;//on=ON
-		if(RomReceive[1][1] & 4)//KSet=on
-		{
-			//	++CtErrorOff;
-			PORTC &=0xdf;//off=ON
-
-			StatusKontaktorSet &=0xce;
-		}
-		else
-		PORTC |=0x20;//off=OFF	
-	}	
-	
-	
-	
-	
-}
-void	KSetOff(void)
-{
-
-	PORTC |=0x10;//On=off
-
-	if(StatusKontaktorSet & 2)//NR was ON
-	{
-		if((USet>=UMinProt)&&(USet<=UMaxProt))
-		{
-			RegimClearError |=4;
-			if(CtClearError[2])
-			{
-				PORTC &=0xdf;//off=ON
-				//	++CtErrorOff1;
-			}	
-			else
-			{
-				PORTC |=0x20;//off=OFF
-				StatusKontaktorSet &=0xfd;
-			}
-		}
-		else
-		PORTC |=0x20;//off=OFF
-	}
-	else
-	{
-		if(RomReceive[1][1] & 4)
-		{
-			PORTC &=0xdf;//off=ON
-			//	++CtErrorOff2;
-		}
-		else
-		PORTC |=0x20;//off=OFF
-	}
-}
-
-void	KSetOn(void)
-{
 
 
-	PORTC |=0x20;//off=OFF
-	if(RomReceive[1][1] & 4)
-	{
-		PORTC |=0x10;//On=off
-		StatusKontaktorSet |=0x40;
-	} 
-	else
-	{
-		if(!(StatusKontaktorSet & 0x40)) 
-		PORTC &=0xef;//on=ON
-		if(RomReceive[1][1] & 2)//KG=on
-		PORTC &=0xf7;//off=ON
-		else
-		PORTC |=0x8;//off=OFF	
-	}	
-	
-}										
+
+
 void	ChangeStatusKontaktorGenHand(void)
 {
 	unsigned char R0;
@@ -1082,8 +1007,8 @@ void	ChangeStatusKontaktorGenHand(void)
 		R0 |=0x40;//first on
 		RegSWork &=0xfff7;
 	}
-	else if(Error & 0x188c)//UGen no norma,no on/off,obratnaya P,Peregruz
-	R0 &=0x6e;	
+	else if(Error & 0x88c)//UGen no norma,no on/off,obratnaya P
+	R0 &=0xee;	
 
 	else if((R0 & 0x40)&&((NumberRegim>=3)||(!NumberRegim)))
 	{
@@ -1095,7 +1020,7 @@ void	ChangeStatusKontaktorGenHand(void)
 	else if((RegSWork & 0x8)&&(NumberRegim==2))//Gen
 	{
 		if(R0 & 1)
-		R0 &=0x6e;
+		R0 &=0xee;
 
 		else
 		R0 |=1;
@@ -1104,79 +1029,27 @@ void	ChangeStatusKontaktorGenHand(void)
 	}
 	if((R0 & 0x20)&&(RomReceive[1][1] & 2))//KG=off
 	R0 &=0xce;
-	if((R0 & 0x10)&&(RomReceive[1][1] & 2))//KG=on
-	R0 |=0x80;
-	else if((!(RomReceive[1][1] & 2))&&(!(R0 & 0x10)))
-	R0 &=0x7f;
 	StatusKontaktorGen=R0;
 }
 
 
-void	ChangeUNomAvtoGenLine(void)
-{
 
 
-	if(UGen>ULine)
-	--UNom;
-	else if(UGen<ULine)
-	++UNom;	
-	
-}
-void	ChangeUNomAvtoSetLine(void)
-{
-
-	if(USet>ULine)
-	++UNom;
-	else if(USet<ULine)
-	--UNom;	
-	
-}
-void ControlKontaktorGen(void)
-{
-
-	if(Error & 4)//Gen no on
-	PORTC |=0x4;
-	if(Error & 8)//Gen no off
-	PORTC |=0x8;
-
-	if(!(Error & 0xc))
-	{
-		if((!(StatusKontaktorGen & 0x10))||(StatusKontaktorGen & 0x20))
-		{
-			KGenOff();
-
-		}
-		else if((StatusKontaktorGen & 0x10)&&(UGen>UMinProt))
-		KGenOn();
-
-
-	}
-	else
-	{
-		KGenOff();
-		RegTransmit[4][1] |=0x10;
-	}
-
-}
 
 void	ChangeStatusKontaktorSet(void)
 {
 	unsigned char R0;
-	unsigned char R1;
-
 	R0=StatusKontaktorSet;
-	R1=RegTransmit[4][1];
 	if((Error & 0x43)||(RomReceive[6][1] & 0x20))// set no norma, error on/off
 
 	{
 
 		R0 &=0xee;
-		R1 |=4;//bit Off
-		R1 &=0xfd;//bit On=off
+		RegTransmit[4][1] |=4;//bit Off
+		RegTransmit[4][1] &=0xfd;//bit On=off
 	}
 	else if(RomReceive[2][1] & 0x20)//&&(NumberRegim))
 	{
-
 		R0 &=0xee;
 		R0 |=0x80;
 	}
@@ -1190,36 +1063,35 @@ void	ChangeStatusKontaktorSet(void)
 		{
 			R0 |=1;
 			//	RegTransmit[4][1] |=2;//bit On 
-			R1 &=0xfb;//bit Off=off
+			RegTransmit[4][1] &=0xfb;//bit Off=off
 		}		
 		else if(!CtSetOff)
 		{
-
 			R0 &=0xee;
-			R1 |=4;//bit Off
-			R1 &=0xfd;//bit On=off
+			RegTransmit[4][1] |=4;//bit Off
+			RegTransmit[4][1] &=0xfd;//bit On=off
 		}	
 		
 	}
 	else if((NumberRegim !=1)&&(NumberRegim !=4))			 
 	{
 
-		R1 &=0xfe;
+		RegTransmit[4][1] &=0xfe;
 		if(RegSWork & 0x100)//Set
 		{
 			if(R0 & 1)
 			{
 
 				R0 &=0xee;
-				R1 |=4;//bit Off
-				R1 &=0xfd;//bit On=off
+				RegTransmit[4][1] |=4;//bit Off
+				RegTransmit[4][1] &=0xfd;//bit On=off
 			}
 
 			else 
 			{
 				R0 |=1;
-				R1 |=2;//bit On
-				R1 &=0xfb;//bit Off=off
+				RegTransmit[4][1] |=2;//bit On
+				RegTransmit[4][1] &=0xfb;//bit Off=off
 			}
 
 
@@ -1231,105 +1103,73 @@ void	ChangeStatusKontaktorSet(void)
 
 	if(NumberRegim>=4)//Rezerv
 	{
-
-		if((USet>UMinProt)&&(USet<UMaxProt))
+		if((USet>207)&&(USet<248))
 		{
-			CtTime[0]=CtTime0;
-			if((NumberRegim==4)&&(!CtTime[1]))
+			RegimTime &=0xfe;
+			if(NumberRegim==4)
 			R0 |=1;
-			R1 |=2;//bit On
-			if(RomReceive[1][1] & 4)//Kset=on
-			R1 &=0xfe;
+			RegTransmit[4][1] |=2;//bit On
 		}
 
-		else if((Error & 0x40)||(!(RomReceive[2][1]& 2)))//Set no norma
+		if(Error & 0x40)//Set no norma
 		{
-			CtTime[1]=CtTime0;
 
 
-			if(Error & 0x188c)
-			R1 &=0xfe;
+			//	RegimTime |=1;
+			if(Error & 0x88c)
+			RegTransmit[4][1] &=0xfe;
 
-			else if(!CtTime[0])
-			R1=1;//Pusk for KD
+			else if(!CtTime)
+			RegTransmit[4][1] |=1;//Pusk for KD
 		}
 		else
 		{
-			CtTime[0]=CtTime0;
+			if(RomReceive[1][1] & 4)//Kset=on
+			RegTransmit[4][1] &=0xfe;
+
+
+
+
 			if(NumberRegim==5)//Rezerv DU
 			{
 				if(RomReceive[5][1] & 0x10)//Set ON
 				{
 					R0 |=1;
 
-					R1 |=2;//bit On 
-					R1 &=0xfb;//bit Off=off
+					RegTransmit[4][1] |=2;//bit On 
+					RegTransmit[4][1] &=0xfb;//bit Off=off
 				}		
 				else if(!CtSetOff)
 				{
-					R0 &=0xee; 
+					R0 &=0xee;
 
-					R1 |=4;//bit Off
-					R1 &=0xfd;//bit On=off
+					RegTransmit[4][1] |=4;//bit Off
+					RegTransmit[4][1] &=0xfd;//bit On=off
 					if(RomReceive[5][1] & 1)
-					R1 |=1;//Pusk for KD
+					RegTransmit[4][1] |=1;//Pusk for KD
 				}
 			}
+			CtTime=CtTime0;
+			//	RegimTime &=0xfe;
 		}
 	}
-	if((!NumberRegim)||(NumberRegim==5))
-	{
-		if(!(RomReceive[5][1] & 0x10))
-		{
-			R0 &=0x7f;
+	if(!(RomReceive[5][1] & 0x10))
+	R0 &=0x7f;
 
-		}
-	}
 	StatusKontaktorSet=R0;
-	RegTransmit[4][1]=R1;
+
 }
 
-void ControlKontaktorSet(void)
-{
-	if(!(StatusKontaktorSet & 0x11))
-	StatusKontaktorSet &= 0xbf;
-	if(Error & 1)//set no on
-	PORTC |=0x10;
-	if(Error & 2)//set no off
-	PORTC |=0x20;
-	if((RomReceive[2][1] & 0x20)&&(NumberRegim>=1)&&(NumberRegim<=4))
-	{
-		if(!CtSetOff)			
-		KSetOff();
-	}
-	else if(!(Error & 3))
-	{
-		if(StatusKontaktorSet & 0x10)
-		{
-			KSetOn();
-			if(StatusKontaktorGen & 0x20)
-			{
-				KGenOff();
-				RegTransmit[4][1] |=0x10;
-			}
-		}
-
-		else// if(!CtSetOff) 
-		{
-			//	++CtErrorOff1;
-			KSetOff();
-		}
-	}
-}
 
 
 
 void	ChangeRegimClearError(void)
 {
-	RegimClearError &=0xfe;
-	if((USet>=UMinProt) && (USet<=UMaxProt))
+	if((USet>=207) && (USet<=248))
 	RegimClearError |=1;
-
+	else
+	RegimClearError &=0xfe;
+	
 }
 
 void	ChangeStatusNRSet(void)	
@@ -1353,7 +1193,6 @@ void	ChangeRegimError(void)
 {
 	unsigned char R0;
 	unsigned char R1;
-
 	R0=0;
 	R1=RomReceive[1][1];
 	if(StatusKontaktorSet & 0x10)//Set
@@ -1370,23 +1209,12 @@ void	ChangeRegimError(void)
 	}				
 	if(StatusKontaktorGen & 0x10)//Generator
 	{
-
 		if(!(R1 & 2))
-		{
-			if(!(StatusKontaktorGen & 0x80))
-			{
-				R0 |=4;
-				CtError[11]=CtError0[11];
-			}
-
-		}
-		else
-		CtError[11]=CtError0[11];
+		R0 |=4;
 		
 	}
 	else
 	{
-		CtError[11]=CtError0[11];
 		if(R1 & 2)
 		R0 |=0x8;
 		
@@ -1397,9 +1225,9 @@ void	ChangeRegimError(void)
 	if((R1 & 2) && (!(PORTC & 0x40)))//NR Gen
 	R0 |=0x20;
 
-	if((USet>50)||(StatusKontaktorSet & 0x11)||(R1 & 4))
+	if((StatusKontaktorSet & 0x11)||(R1 & 4))
 	{		
-		if((USet<=UMinProt)||(USet>=UMaxProt))
+		if((USet<=208)||(USet>=247))
 		R0 |=0x40;
 	}
 
@@ -1410,7 +1238,7 @@ void	ChangeRegimError(void)
 		StatizmVozb &=0xf7;//vozb=on
 
 
-		if((UGen<=UMinProt)||(UGen>=UMaxProt))
+		if((UGen<=206)||(UGen>=248))
 		R0 |=0x80;
 		
 	}
@@ -1426,7 +1254,6 @@ void	ChangeRegimError(void)
 	}
 	else
 	StatizmVozb &=0xef;
-
 	RegimError=R0;		
 	
 }	
@@ -1439,70 +1266,15 @@ void    ClearError(void)
 }
 
 
-void	ControlNRGen(void)
-{
 
-	if(Error & 0x20)
-	PORTC |=0x40;//NR Gen=off
-	else if(!(RomReceive[1][1] & 2))//Gen=off
-	PORTC |=0x40;//NR Gen=off
-	else if(Error & 0x80)//UGen<0.5UNom
-	{
-		PORTC &=0xbf;
 
-		PORTC |=0x8;
-	}
-	else if(!(StatusKontaktorGen & 0x10))//status Gen=off
-	{
-		if(RomReceive[1][1] & 2)//Gen=on
-		{
-			if(Error & 8)//error off Gen
-			{
-				PORTC &=0xbf;
-
-				PORTC |=0x8;
-			}
-		}
-		else
-		PORTC |=0x40;
-	}
-
-}
-void	ControlNRSet(void)
-{
-	if((Error & 0x10)||(!(RomReceive[1][1] & 4)))//NR Set
-	PORTC |=0x80;//NR Set=off
-	//	else if(!(RomReceive[1][1] & 4))//set=off
-	//	PORTC |=0x80;//NR Set=off
-	else if(Error & 0x40)//Set no norma
-	{
-		PORTC &=0x7f;
-
-		PORTC |=0x20;
-	}
-	else if(!(StatusKontaktorSet & 0x10))//status set=off
-	{
-		if(RomReceive[1][1] & 4)//set=on
-		{
-			if(Error & 2)//error off set
-			{
-				PORTC &=0x7f;
-
-				PORTC |=0x20;
-			}
-		}
-		else
-		PORTC |=0x80;
-	}
-
-}
 
 
 
 
 void	ChangeUNomHand(void)
 {
-	unsigned char R1;
+	unsigned int R1;
 	if(EnableReadKn)
 	{	
 		if(RegS & 2)
@@ -1519,10 +1291,10 @@ void	ChangeUNomHand(void)
 		EnableReadKn=0;
 		if(!CtEnableEeprom)
 		{
-			CtEnableEeprom=250;
-			R1=ReadEeprom(4);
+			CtEnableEeprom=10000;
+			R1=ReadEepromWord(4);
 			if(UNomConst !=R1)
-			WriteEeprom(4,UNomConst);
+			WriteEepromWord(4,UNomConst);
 		}
 	}
 	
@@ -1577,31 +1349,24 @@ void	OnParalelGen(void)
 	RegTransmit[4][1] |=4;//off set2
 	if(!CtChangeUNom)
 	{
-		ChangeUNomAvtoGenLine();
+
 		CtChangeUNom=20;
 	}
-	/*	if(RomReceive[1][1] & 4)//KSet=on
-			{
-	R2=DeltaFDop;
+	if(RomReceive[1][1] & 4)//KSet=on
+	{
+		R2=DeltaFDop;
 
-			}
+	}
 	else
-			{
+	{
 
-	R2=DeltaFDop+50;//+50;//150;
-			}*/
-	R2=DeltaFDop;	
-	ChangeFNomGenLine();
-	if(UGen>=ULine)
-	R0=UGen-ULine;
-	else
-	R0=ULine-UGen;
-	//	R0=abs(UGen-ULine);
-	if(Period[0]>=Period[2])
-	R1=Period[0]-Period[2];
-	else
-	R1=Period[2]-Period[0];
-	//	R1=abs(Period[0]-Period[2]);		
+		R2=DeltaFDop+150;
+	}
+
+
+	R0=abs(UGen-ULine);
+
+	R1=abs(Period[0]>=Period[2]);		
 
 
 
@@ -1609,7 +1374,7 @@ void	OnParalelGen(void)
 	{
 		if(R1<=R2)
 		{
-			if((ULineGenOld<=60)&&(ULineGenOld>=30)&&(ULineGen<=DeltaULineDop))
+			if((ULineGenOld<=DeltaULineDop+20)&&(ULineGen<=DeltaULineDop))
 			{
 
 				StatusKontaktorGen |=0x10;
@@ -1628,20 +1393,13 @@ void	OnParalelSet(void)
 	unsigned int R1;
 	if(!CtChangeUNom)
 	{
-		ChangeUNomAvtoSetLine();
+
 		CtChangeUNom=20;
 	}
-	ChangeFNomSetLine();
-	if(USet>=ULine)
-	R0=USet-ULine;
-	else
-	R0=ULine-USet;
-	//	R0=abs(USet>=ULine);
-	if(Period[1]>=Period[2])
-	R1=Period[1]-Period[2];
-	else
-	R1=Period[2]-Period[1];
-	//	R1=abs(Period[1]-Period[2]);
+
+	R0=abs(USet>=ULine);
+	
+	R1=abs(Period[1]>=Period[2]);
 
 
 	if(R0<=DeltaUDop)
@@ -1764,10 +1522,7 @@ void	AvtoRegim(void)
 	//KSet=on
 	{
 		if(!(StatusKontaktorSet & 1))
-		{
-			StatusKontaktorSet &=0xee;
-			//	++CtErrorOff1;
-		}
+		StatusKontaktorSet &=0xee;
 		else
 		{
 			if(!(R0 & 2))//KG=off
@@ -1793,11 +1548,7 @@ void	AvtoRegim(void)
 					R1 |=0x10;//stop
 				}
 				if(StatusKontaktorSet & 0x20)//after parall
-				{
-
-					StatusKontaktorSet &=0xee;
-					//	++CtErrorOff2;
-				}
+				StatusKontaktorSet &=0xee;
 
 
 
@@ -1842,7 +1593,7 @@ void	LoadRegTransmitUsart(unsigned char NumberFunction)
 		RegTransmitUsart[1]=0x6;//NumberFunction	
 		RegTransmitUsart[2]=0;//Adres H
 		RegTransmitUsart[3]=0;//Adres L
-		RegTransmitUsart[4]=0;//UNom>>8;
+		RegTransmitUsart[4]=UNom>>8;
 		RegTransmitUsart[5]=UNom;
 		CRCTransmitGlobal(5);
 		RegTransmitUsart[6]=RCHTransmit;
@@ -1854,7 +1605,7 @@ void	LoadRegTransmitUsart(unsigned char NumberFunction)
 		RegTransmitUsart[1]=0x6;//NumberFunction	
 		RegTransmitUsart[2]=0;//Adres H
 		RegTransmitUsart[3]=1;//Adres L
-		RegTransmitUsart[4]=0;
+		RegTransmitUsart[4]=KStatizm>>8;
 		RegTransmitUsart[5]=KStatizm;
 		CRCTransmitGlobal(5);
 		RegTransmitUsart[6]=RCHTransmit;
@@ -1885,11 +1636,31 @@ void	LoadRegTransmitUsart(unsigned char NumberFunction)
 
 
 }
+void AccountCurrentLC(void)
+{
+	unsigned int R0;
+	unsigned int R1;
+	R0=AdResult[5];
+	R1=DeltaUITest>>8;
+	if((R1<110)||(R0<100)||(R1>170))
+	CtError[11]=CtError0[11];
+	//	RegTransmit[7][1]=R1;
+
+}
 
 
 
+void LoadFromEeprom(void)
+{
 
-
+	UNomConst=ReadEepromWord(4);
+	if(UNomConst>250)
+	UNomConst=230;
+	UNom=UNomConst;
+	KoefU=ReadEepromWord(6);
+	if((KoefU<235)||(KoefU>270))	
+	KoefU=256;
+}	
 
 /*++++++++++++++++++++++++++++++++++++++++++*/
 
@@ -1918,22 +1689,11 @@ int main(void)
 	//    TIMSK=TIMSK | 0x24;//enable Int overlowT1
 	//   TIMSK=TIMSK | 0x20;//enable Int capture1 
 
-
-	ADMUX=0xd2;//2.56=Ref
-	//    SFIOR=0;//SFIOR & 0x1f;//start from end AD
-	CtAd=CtAd0;
-	NumberAd=6;
-	ADCSRA=0x8f;
-	//	ADCSRA |=(1<<ADEN);/*enable AD*/
-	//	ADCSRA |=(1<<ADPS2);
-	//  ADCSRA |=(1<<ADPS1);
-	//ADCSRA |=(1<<ADPS0); /*32*/	 		
-	//	ADCSRA |=(1<<ADIE);/* enable interrupt*/
-	ADCSRA |=(1<<ADSC);/* Start*/
+	InitAd();
 
 	//   InitComparator();
 	ACSR =0Xa;//1 > 0
-	MCUCR=0xc3;
+	MCUCR=0xcb;
 	//    MCUCR=MCUCR | 0xc3;/* Log1>0 Int1*/
 	//   MCUCR=MCUCR | 0x3;/* Log1>0 Int0*/
 
@@ -1949,39 +1709,14 @@ int main(void)
 	ASSR=0;
 
 	ResetError();
-
-
-
-	UNomConst=ReadEeprom(4);
-	if(UNomConst>UNomMax)
-	UNomConst=230;
-	UNom=UNomConst;
-	KoefU=ReadEepromWord(6);
-	if((KoefU<235)||(KoefU>270))	
-	KoefU=256;
+	LoadFromEeprom();
 
 
 
 
 
-	//	InitUSART();
 
-	UCSRA=0;//двойная скорость
-	UCSRB=0x1c;//enable transmit,receive,8bit
-	UCSRC=0x86;//0x24 7 bit control parity
-	UBRRH=0;
-	UBRRL=51;//9600
-
-	while(!(UCSRA & 0x20))
-	_WDR();
-
-	UCSRB  |=0x80;//Interrupt Receive enable
-
-
-
-
-
-	//	NumberLink=1;
+	NumberLink=1;
 	//	UNom=220;
 	RegSWork=0;
 
@@ -1995,10 +1730,10 @@ int main(void)
 
 	InitTWI();
 	_SEI();
-
+	//	RegimTime=0;
 	StatusKontaktorGen=0;
 	StatusKontaktorSet=0;
-	CtTime[0]=CtTime0;
+
 	RegS=0;					             
 	while(1)
 	{
@@ -2006,11 +1741,7 @@ int main(void)
 		_WDR();
 
 		if((!(StatusKontaktorSet & 0x11))&&(!(RomReceive[1][1]& 0x20)))
-		{
-			UNom=UNomConst;
-			if((NumberRegim==2)||(NumberRegim==3))
-			ChangeUNomHand();
-		}
+		UNom=UNomConst;
 		if(!CtTransmitUsart)
 		{
 			if(NumberLinkUsart)
@@ -2020,22 +1751,22 @@ int main(void)
 			CtReceiveUsart=0;
 			LoadRegTransmitUsart(NumberLinkUsart);
 			CtTransmitUsart=15;
-			//	RCHReceive=0xff;
-			//	RCLReceive=0xff;
+			RCHReceive=0xff;
+			RCLReceive=0xff;
 
 		}
 		ChangeNumberRegim();
 		LoadRegInd();
 		if(RomReceive[4][1] & 1)
 		ResetError();
-		if(UNom>UNomMax)
-		UNom=UNomMax;
-		if(UNom<UNomMin)
-		UNom=UNomMin;
-		if(UNomConst>UNomMax)
-		UNomConst=UNomMax;
-		if(UNomConst<UNomMin)
-		UNomConst=UNomMin;	
+		if(UNom>260)
+		UNom=260;
+		if(UNom<204)
+		UNom=204;
+		if(UNomConst>260)
+		UNomConst=260;
+		if(UNomConst<204)
+		UNomConst=204;	
 		
 		KStatizm=200;
 		if((StatusKontaktorGen & 0x11) && (RomReceive[1][1] & 0x20))//Status KG1,2=on
@@ -2061,6 +1792,7 @@ int main(void)
 			else
 			NumberLink=1;
 			_WDR();
+			++TestTWI;
 			LoadRegTransmit();//++RegTransmit
 			ReceiveTransmitMaster();
 		}
@@ -2069,19 +1801,17 @@ int main(void)
 		{
 
 
+			AccountCurrentLC();
 
 
 
-
-			UGen=CalcU(0);//UGen
-			if(UGen<30)
-			CtError[10]=CtError0[10];
-			USet=CalcU(1);//USet
-			ULine=CalcU(2);//ULine
+			UGen=CalcU(3);//UGen
+			USet=CalcU(4);//USet
+			ULine=CalcU(5);//ULine
 			ULineGenOld=ULineGen;
-			ULineGen=CalcDeltaU(3);
-			ULineSetOld=ULineSet;
-			ULineSet=CalcDeltaU(4);
+			ULineGen=CalcDeltaU(0);
+			ULineLine=CalcDeltaU(1);
+			ULineSet=CalcDeltaU(2);
 
 			ChangeRegimError();
 			ChangeRegimClearError();
@@ -2099,36 +1829,28 @@ int main(void)
 				ChangeStatusNRSet();//hand SHU
 				ChangeStatusNRGen();
 				ChangeStatusKontaktorSet();
-				if(!CtSetOff)
-				ControlNRSet();
-				ControlNRGen();
+
 				ChangeStatusKontaktorGenHand();
 				AvtoRegim();
-				ControlKontaktorSet();
-				ControlKontaktorGen();
 			}
 
 			switch (NumberRegim)
 			{
-				//	case 3:
-				//	ChangeUNomHand();
-				//	break;
+			case 3:
+				ChangeUNomHand();
+				break;
 
-			case 1:PORTC |=0xfc;//hand MU
+			case 1:
 				RegSWork=0;
 				break;
 
 			case 2:ChangeFNom=0;
-				//	ChangeUNomHand();
+				ChangeUNomHand();
 				break;
 
 			default:break;
 			}
-			//	if(NumberRegim !=1)
-			//		{
-			//	ControlKontaktorSet();
-			//	ControlKontaktorGen();
-			//		}
+
 			AdEnd=0;
 		}
 		
@@ -2143,8 +1865,8 @@ void MeagerPeriod(unsigned char R2)
 {
 	unsigned int R0;
 	unsigned int R1;
-
-	unsigned int R4;
+	unsigned int R3;
+	TestPeriod +=(R2+1);
 	if(R2==2)
 	{
 		R1=ICR1;
@@ -2156,34 +1878,29 @@ void MeagerPeriod(unsigned char R2)
 		TCCR1B &=0xf8;//0.5mkc
 		R1=TCNT1;
 		TCCR1B |=0x2;//0.5mkc
+		if(R2==3)
+		{
+			FazaI=R1;
+
+			R3=FazaI-FazaU;
+			DeltaUITest=R3;
+
+
+		}
 	}
+
+
+
 	R0=R1-TNT1Old[R2];
 	if(!CtOverLow[R2])
-	R0=0xffff;
+	Period[R2]=0xffff;
+	else if((CtOverLow[R2]==1) && (R1>=TNT1Old[R2]))
+	Period[R2]=0xffff;
+	else
 	Period[R2]=R0;
-	R4=R0>>8;
-
-	
-	
 	TNT1Old[R2]=R1;
-	CtGate[R2]=60;
+	CtGate[R2]=120;
 	CtOverLow[R2]=2;
-
-
-	if(R2==3)
-	{
-		//	FazaI=R1;
-		if((R4>140)&&(R4<170))
-		DeltaUITest=(R1-FazaU)>>8;
-		else
-		DeltaUITest=100;
-
-	}
-	
-
-
-
-
 }
 
 SIGNAL(SIG_ADC)
@@ -2194,14 +1911,7 @@ SIGNAL(SIG_ADC)
 	
 	
 	RegInt0=ADC;
-	if(NumberAd==16)
-	R0=3;
-	else if(NumberAd==18)
-	R0=4;
-	else if(NumberAd==6)
-	R0=5;
-	else
-	R0=NumberAd-3;
+	R0=NumberAd;
 
 
 	if(CtAd)
@@ -2209,17 +1919,11 @@ SIGNAL(SIG_ADC)
 		--CtAd;
 		if(CtAd<=CtAd0)
 		{ 
-			if(NumberAd>=16)
+			
+			if(R0==6)
 			{
-
-				if(RegInt0>=0x200)
-				RegInt0=0x3ff-RegInt0;
-				
-			}			
-			if(R0==5)
-			{
-				if(RegInt0>AdTemp[5])
-				AdTemp[5]=RegInt0;
+				if(RegInt0>AdTemp[6])
+				AdTemp[6]=RegInt0;
 				if(RegInt0<AdTempMin)
 				AdTempMin=RegInt0;	
 				
@@ -2231,8 +1935,8 @@ SIGNAL(SIG_ADC)
 	else
 	{
 		ChangeNumberAd=1;
-		if(R0==5)
-		AdResult[5]=AdTemp[5]-AdTempMin;
+		if(R0==6)
+		AdResult[6]=AdTemp[6]-AdTempMin;
 
 		else
 		AdResult[R0]=AdTemp[R0]>>7;
@@ -2240,23 +1944,11 @@ SIGNAL(SIG_ADC)
 		AdTempMin=0xffff;
 		CtAd=CtAd0+2;
 
-		if(NumberAd==NumberAdSlow)
-		{
-			NumberAd=16;
-			if(RomReceive[1][1] & 2)
-			NumberAd=18;
-
-		}
+		if(NumberAd)
+		--NumberAd;
 		else
-		{
-			AdEnd=1;
-			if(NumberAdSlow>=4)
-			--NumberAdSlow;
-			else			
-
-			NumberAdSlow=6;
-			NumberAd=NumberAdSlow;
-		}
+		NumberAd=6;
+		AdEnd=1;
 	}
 
 	if(ChangeNumberAd)
@@ -2276,17 +1968,14 @@ SIGNAL(SIG_INPUT_CAPTURE1)
 	MeagerPeriod(2);
 	TIFR=TIFR | 0x20; 
 	TIMSK=TIMSK & 0xdf;//denable Int capture1 
-
+	ACSR |=8;//Enable Int comp
 }
 
 
 SIGNAL(SIG_OVERFLOW1)// 32 Ms
 {
 	unsigned char R0;
-	unsigned int R2;
-	unsigned char R3;
-	if(CtEnableEeprom)
-	--CtEnableEeprom;
+
 	if(CtTransmitUsart)
 	--CtTransmitUsart;
 	if(CtNoReceiveUsart)
@@ -2296,7 +1985,7 @@ SIGNAL(SIG_OVERFLOW1)// 32 Ms
 
 		RCHReceive=0xff;
 		RCLReceive=0xff;
-		CtNoReceiveUsart=29;
+		CtNoReceiveUsart=19;
 	}
 
 	if(CtKn)
@@ -2311,18 +2000,18 @@ SIGNAL(SIG_OVERFLOW1)// 32 Ms
 			--CtSetOff;
 		}
 		else
-		CtSetOff=10;
+		CtSetOff=2;
 	}
 	else 
 	{	
-		if((!(StatusKontaktorSet & 0x10))||(RomReceive[2][1]& 0x20))
+		if(!(StatusKontaktorSet & 0x10))
 		{
 			if(CtSetOff)
 			--CtSetOff;
 		}
 
 		else
-		CtSetOff=10;
+		CtSetOff=2;
 	}
 	if(CtChangeUNom)
 	--CtChangeUNom;
@@ -2331,35 +2020,8 @@ SIGNAL(SIG_OVERFLOW1)// 32 Ms
 	--CtEnableKn;
 	else
 	{
-
-		if(CtTime[0])
-		--CtTime[0];
-		if(CtTime[1])
-		--CtTime[1];
-
-
 		CtEnableKn=3;
 		EnableReadKn=1;
-		for(R0=8;R0<=11;++R0)
-		{
-			if(CtError[R0])
-			--CtError[R0];
-		}
-
-		R2=AdResult[5];
-		R3=DeltaUITest;
-		if((R3<=100)||(R2<160)||(R3>155))
-		{
-			if(CtError[12]<CtError0[12])
-			++CtError[12];
-		}
-
-		else if(CtError[12])
-		--CtError[12];
-
-
-
-
 	}
 	switch(CtEnableKn)
 	{
@@ -2411,9 +2073,15 @@ SIGNAL(SIG_OVERFLOW1)// 32 Ms
 	}
 
 
+	for(R0=8;R0<=11;++R0)
+	{
+		if(CtError[R0])
+		--CtError[R0];
+	}
 
 
-
+	if(CtTime)
+	--CtTime;
 
 
 
@@ -2424,7 +2092,7 @@ SIGNAL(SIG_INTERRUPT1)
 	MeagerPeriod(0);
 	GIFR |=0x80;
 	GICR = GICR & 0x7f;//Denable INT1
-
+	GIFR |=0x80;
 } 
 
 SIGNAL(SIG_INTERRUPT0)
@@ -2439,60 +2107,64 @@ SIGNAL(SIG_INTERRUPT0)
 
 SIGNAL(SIG_OVERFLOW2)//128mks
 {
-	unsigned char R0;
-	for(R0=0;R0<=3;++R0)
-	{
-		if(CtGate[R0])
-		--CtGate[R0];
-	}
+	if(CtEnableEeprom)
+	--CtEnableEeprom;
 
 
-
+	//	if(CtErrorLink[0])
+	//	--CtErrorLink[0];
+	//	else
+	//	InitTWI();
 	if(CtErrorLink[1])
 	--CtErrorLink[1];
 	else
 	InitTWI();
 
 
-
-
-	if(CtGate[0]==1)
+	if(CtGate[0])
 	{
-		GIFR |=0x80;
-		GICR = GICR | 0x80;//enable INT1
+		--CtGate[0];
+
+		if(CtGate[0]==1)
+		{
+			GIFR |=0x80;
+			GICR = GICR | 0x80;//enable INT1
+
+		}
 	}
 
 
-
-
-
-	if(CtGate[1]==1)
+	if(CtGate[1])
 	{
-		GIFR |=0x40;
-		GICR = GICR | 0x40;//enable INT0
-	}
+		--CtGate[1];
 
-	if(CtGate[2]==1)
-	{
-		if(PIND & 0x40)
-		TIMSK=TIMSK | 0x20;//enable Int capture1
-		else
-		CtGate[2]=30; 
-	}
-	if(CtGate[3]==1)
-	{
-		if(!(ACSR & 0x20))
-		ACSR |=8;//Enable Int comp
-		else
-		CtGate[3]=30;
+		if(CtGate[1]==1)
+		{
+			GIFR |=0x40;
+			GICR = GICR | 0x40;//enable INT0
+		}
 	}
 
 
+	if(CtGate[2])
+	{
+		--CtGate[2];
+		if(CtGate[2]==1)
+		{
 
+			TIMSK=TIMSK | 0x20;//enable Int capture1 
+		}
+	}
+	if(CtGate[3])
+	{
+		--CtGate[3];
+		if(CtGate[3]==1)
+		{
+			ACSR |=8;//Enable Int comp
 
+		}
 
-
-
+	}
 
 }
 
@@ -2504,6 +2176,7 @@ SIGNAL(SIG_UART_RECV)
 SIGNAL(SIG_COMPARATOR)
 {
 	MeagerPeriod(3);
+
 	ACSR &=0xf7;//denable Int comp
 
 } 

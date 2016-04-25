@@ -808,7 +808,7 @@ void main(void)
 				wdt_reset();
 			TWBR = 0x7f;//F TWI
 			TWAR = 4;
-			TWCR = (1<<TWEA)|(1<<TWEN);
+			TWCR = (1<<TWEA)|(1<<TWEN)|(1<<TWIE);
 			//   TWCR |=(1<<TWINT);
 			CtErrorLink[0]=CtErrorLink0[0];
 

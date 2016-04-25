@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99           -DF_CPU=8000000UL -O1 -funsigned-char -funsigned-bitfields -fpack-struct
+CFLAGS += -Wall -gdwarf-2 -std=gnu99           -DF_CPU=8000000UL -O2 -funsigned-char -funsigned-bitfields -fpack-struct
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 CFLAGS += -o $(@)
 
@@ -37,7 +37,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 
 ## Include Directories
-INCLUDES = -I"C:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr" -I"D:\kopusov\pgm\19y6\Kopusov\M19U6_PI18_KDG\." 
+INCLUDES = -I"C:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr" -I"D:\kopusov\pgm\19y6\Kopusov\M19U6_PI18\." 
 
 ## Objects that must be built in order to link
 OBJECTS = main.o 
@@ -50,7 +50,7 @@ LINKONLYOBJECTS =
 
 ## Build
 all: $(TARGET) M19U6_PI18_KDG.hex M19U6_PI18_KDG.eep M19U6_PI18_KDG.lss## Compile
-main.o: ../main.c
+main.o: main.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link
@@ -65,7 +65,7 @@ $(TARGET): $(OBJECTS)
 
 %.lss: $(TARGET)
 	avr-objdump -h -S $< > $@
-	C:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-size.exe -C --mcu=$(MCU) d:\kopusov\pgm\19y6\Kopusov\M19U6_PI18_KDG\default\$(TARGET)
+	C:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-size.exe -C --mcu=$(MCU) d:\kopusov\pgm\19y6\Kopusov\M19U6_PI18\default\$(TARGET)
 	
 	
 ## Clean target
