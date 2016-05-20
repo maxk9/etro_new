@@ -1,0 +1,1157 @@
+
+//viev memory layout 0x8006010 URef
+
+
+#include <stdio.h>
+#include <1986be91.h>
+//#include "MDR32Fx.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <math.h>
+
+
+#if defined ( __ICCARM__ )
+  #define __RAMFUNC      __ramfunc
+#else
+  #define __RAMFUNC
+#endif
+
+#ifdef __CMCARM__
+  #pragma ramfunc write_EEPROM
+  #pragma ramfunc erase_EEPROM
+
+#endif
+
+void    InitIndStart(void);
+void    InitInd(void);
+unsigned int LM(unsigned int R1);
+void    DecSegm( unsigned int R0);
+void IndPar(void);
+void init_SSP(void);
+void    SetCursor(unsigned int R2,unsigned int R1);
+__RAMFUNC         void    erase_EEPROM(unsigned int ADR);
+__RAMFUNC         void    write_EEPROM(unsigned int ADR,unsigned int DATA);
+ void InitUsart9600(void);
+unsigned int read_adc1 (unsigned char channel);
+unsigned int read_adc2 (unsigned char channel);
+void init_adc1(void);
+void init_adc2(void);
+
+
+
+
+
+
+int abs(int x);
+
+unsigned int RomReceiveEthernet[10];
+unsigned int TestAd[8];
+
+
+const unsigned  char TabDecSeg[10]={0Xfc,0X60,0Xda,0Xf2,0X66,
+                                      0Xb6,0Xbe,0Xe0,0Xfe,0Xf6};
+
+
+unsigned int RegSSP;
+unsigned int TestSSP[8];
+unsigned int CtAnod;
+unsigned int MaskaSetka;
+unsigned int CtSetka;
+unsigned int CtByteAnod;
+unsigned int Segment[10];
+
+
+          unsigned int RegTransmitCAN[16];
+          unsigned    int                 CtTransmitCAN;
+          unsigned    int                 CtErrorCAN=1000;
+unsigned int CANPauza;
+unsigned int TestI2C;
+unsigned int CtUEnd;
+unsigned int CtUEndL;
+unsigned char TestNew[10];
+unsigned int Test141223[5];
+unsigned int TimeWork;
+         unsigned int CtTimeKSKG;
+         unsigned int NNomTemp;
+         unsigned int Ct_N_U;
+         unsigned int TB;
+        unsigned int UOut;
+              unsigned    int                ErrorPKDU2=0;
+             unsigned    int                U500;
+             const unsigned int         UNom500=490;//520;
+             unsigned    int                T[5];
+            unsigned    int                RegimTr;
+            unsigned    int                TestError[5];
+           unsigned    int                CtStarterOn;
+           unsigned    int                CtStarterOff;
+           unsigned    int                CtStarterN;
+          unsigned    int                 USet;
+          unsigned    int                 CtUNew;
+          unsigned    int                 RegimError1;
+          unsigned    int                 Error1;
+          unsigned int CtError1[16];
+
+          //1==8mc
+
+          const unsigned int CtError1_0[16]={500,500,500,500,500,500,500,500,500,500,500,500,500,500,500,500};
+          unsigned    int                 RegimError2;
+          unsigned    int                 Error2;
+          unsigned int CtError2[16];
+
+          //1==8mc
+          const unsigned int CtError2_0[16]={200,1000,500,500,500,500,500,500,500,500,500,500,500,500,500,500};
+
+          unsigned    int                 TM;
+          unsigned    int                 EnableStarter;
+          unsigned    int                 CtDPNom;
+          unsigned    int                 DPNom;
+          unsigned    int                 TestTimer2;
+          unsigned    int                 PORTFF;
+          unsigned    int                 CtReikaOn;
+          unsigned    int                 CtReikaOff;
+          unsigned    int                 CtReikaOn0;
+          unsigned    int                 CtReikaOff0;
+          unsigned    int                 WellTimer3;
+          unsigned    int                 CtTime[16];
+          const unsigned    long                 CtTime0[16]={1000,10,200,1000,22500,10,10,10,75000,1000,1000,37500,7500,1000,1015,1016};
+           unsigned    int                 RegimTime;
+          unsigned    int                 Timer3OverLow;
+          unsigned    int                 TestTimer3[6];
+         unsigned    int                 TestComp[6];
+         unsigned    int                 RegKn1Old;
+         unsigned    int                 RegKnOld;
+
+         unsigned    int                 RegKn1;
+         unsigned    int                 RegKn;
+         unsigned    int                 CtReadKn;
+           unsigned    int                 TestUsart[10];
+          unsigned    char                 CtTestCAN[10];
+         unsigned    int                 CtCAN[10];
+ unsigned int CtUAB;
+ unsigned int RRR;
+#pragma locate RRR 0x8006000 noinit
+  unsigned int RRR1;
+#pragma locate RRR1 0x8007000 noinit
+
+        unsigned    int                 CtEepromT2;
+        unsigned    int                 SysIsTemp;
+        unsigned    int                 UNomHand;
+volatile               unsigned    int            NDizOld;
+        unsigned    int                 NNom;
+
+
+        unsigned    int  RegimWorkTransmit;
+        unsigned    int  RegimWork;
+        unsigned    int  DP;
+
+        unsigned int NDizReceive;
+        unsigned int PeriodCalc;
+        unsigned int TestSicle;
+        unsigned int BitSinh;
+        unsigned int BitSinh1;
+        unsigned int CtUsart[2];
+        const unsigned int CtReceiveRS0=40;
+
+        unsigned int NumberBlock1=2;
+        unsigned int ControlReceive1;
+        long TestRS[9];
+        unsigned int RomReceiveRS1[41][6];
+        unsigned int RamReceiveRS1[41];
+        unsigned int RegTransmitRS1[41];
+//        unsigned int RegimBlock1;
+        unsigned int CtReceiveRS1;
+        unsigned int CtTransmitRS1;
+        unsigned int ControlTransmit1;
+
+        int RP;
+        int RI;
+        int RD;
+                          unsigned int CtNDiz;
+                         unsigned int NDiz;
+//                      unsigned int EnableCapCap;
+                       unsigned int OverLowTimer3;
+                     unsigned int Well;
+                      unsigned int t[3];
+       unsigned long AdSum[8];
+//                        unsigned int RBig2;
+//                       unsigned int RBig1;
+
+
+
+                      unsigned int CtMaxMin;
+                     unsigned int TMin;
+                     unsigned int TMax;
+                   unsigned int CtSicle;
+                          unsigned int RBig2;
+                       unsigned int RBig1;
+
+  //               unsigned int KStatizm; //
+
+                   unsigned int   Error;
+
+             unsigned int CtError[16];
+             const unsigned int CtError0[16]={100,100,100,100,100,100,30,30,30,30,30,10,120,300,120,120};
+
+           unsigned int Timer3Old[3];
+           unsigned int NumberParInd;
+
+          unsigned int CtEeprom;
+
+         unsigned int CtInitInd;
+
+         //       unsigned int IndData[4];
+
+
+        unsigned int RegS=0;
+        unsigned int RegSOld=0;
+        unsigned int RegS1;
+        unsigned int CtStart;
+
+unsigned int CtU;
+unsigned int AdResult[8];
+
+unsigned int PeriodTemp[6];
+unsigned int Period[16];
+unsigned int PeriodUITemp[6];
+unsigned int PeriodUI[6];
+unsigned int TimerUIOld[6];
+unsigned int AD[8][500];
+unsigned int RegTim3[2];
+
+
+
+             unsigned    int                 Avaria;
+             unsigned    int                 AvariaInd;
+             unsigned    int                 AvariaOld;
+            unsigned    int                 CtIndAvaria[32];
+            unsigned    int                 CtIndRegim[16];
+            unsigned    int                 ParamInd;
+            unsigned    int                 RegimIndMainOld;
+            unsigned    int                 RegimIndMain;
+            unsigned    int                 RegimIndParametr;
+            unsigned    int                 RegimIndRegim;
+            unsigned    int                 RegimIndAvaria;
+            const unsigned    int           CtIndAvaria0=200;
+            const unsigned    int           CtIndRegim0=200;
+
+   void InitUsart2(void)
+{
+UART2->CR =0;
+RST_CLK->PER_CLOCK |=0x80;
+RST_CLK->UART_CLOCK |=0x2000000;
+
+  UART2->IFLS=0;
+  UART2->IBRD=104;
+    UART2->FBRD=11;
+    UART2->LCR_H=0x60;
+     UART2->CR=0x201;//301;//301;
+     UART2->IMSC =0x10;//0x390; //enable Receive Int
+SYS->ISER00 |=0x80;
+    UART2->LCR_H |=0x6;//control chetn
+}
+  void Indicator1(unsigned int R0)
+ {
+ static unsigned int R1;
+ static unsigned int R2;
+ static unsigned int R3;
+ static unsigned int R4;
+
+ R1=R0;
+ if(R1>999)
+ R1=999;
+ R3=0;
+ while(R1>=100)
+        {
+ R1 -=100;
+ ++R3;
+        }
+ R2=0;
+ while(R1>=10)
+        {
+ R1 -=10;
+ ++R2;
+        }
+ Segment[7]=TabDecSeg[R3];
+ Segment[6]=TabDecSeg[R2];
+ Segment[5]=TabDecSeg[R1];
+ }
+ void Indicator2(unsigned int R0)
+ {
+ static unsigned int R1;
+ static unsigned int R2;
+ static unsigned int R3;
+ static unsigned int R4;
+
+ R1=R0;
+ if(R1>999)
+ R1=999;
+ R3=0;
+ while(R1>=100)
+        {
+ R1 -=100;
+ ++R3;
+        }
+ R2=0;
+ while(R1>=10)
+        {
+ R1 -=10;
+ ++R2;
+        }
+ Segment[4]=TabDecSeg[R3];
+ Segment[3]=TabDecSeg[R2];
+ Segment[2]=TabDecSeg[R1];
+ }
+
+
+ void    ControlRegimInd(void)
+{
+if((!Avaria)&&(!RegimIndMain))
+RegimIndMain=1;
+if(RegimIndMain>1)
+RegimIndMain=1;
+if(Avaria !=AvariaOld)
+        {
+RegimIndMain=0;
+AvariaOld=Avaria;
+        }
+
+
+else if((RegS & 0x40)&&(!(RegSOld & 0x40)))
+
+        {
+if(!RegimIndMain)
+RegimIndMain=1;
+else
+RegimIndMain=0;
+
+RegSOld |=0x40;
+        }
+if(!(RegS & 0x40))
+RegSOld &=0xffbf;
+}
+
+void IndicatorParam(void)
+{
+static unsigned int R0;
+static unsigned int R1;
+
+switch(ParamInd)
+        {
+case 0:R0=CtError[6];//CtUsart[0];
+R1=CtError[7];//TestUsart[5];
+Segment[0]=0x20;
+Segment[1]=0;
+
+break;
+case 1:R0=CtError[8];//R0=TestUsart[0];
+R1=CtError[9];//PeriodUI[1] & 0xff;
+Segment[0]=0x10;
+
+break;
+case 2:R0=CtError[10];//PeriodUI[2]>>8;
+R1=CtError[11];//RomReceiveRS1[8][1];
+Segment[0]=0x8;
+
+break;
+
+case 3:R0=RomReceiveRS1[8][1];//AdResult[3]>>1;
+R1=AdResult[4]>>2;
+Segment[0]=0x4;
+
+break;
+
+case 4:R0=AdResult[6]>>1;
+R1=AdResult[7]>>1;
+Segment[0]=0x2;
+
+break;
+
+case 5:R0=CtUEndL;
+R1=TestAd[2]>>2;
+Segment[0]=0x1;
+
+break;
+ case 6:R0=TestAd[1]>>2;
+R1=TestAd[0];
+Segment[0]=0;
+Segment[1]=0x20;
+
+break;
+ case 7:R0=RegS & 0xff;
+R1=RegS>>8;
+Segment[1]=0x10;
+break;
+ case 8:R0=RegS & 0xff;
+R1=RegS>>8;
+Segment[1]=0x8;
+break;
+ case 9:R0=RegS & 0xff;
+R1=RegS>>8;
+Segment[1]=0x4;
+break;
+ case 10:R0=RegS & 0xff;
+R1=RegS>>8;
+Segment[1]=0x2;
+break;
+ case 11:R0=RegS & 0xff;
+R1=RegS>>8;
+Segment[1]=0x1;
+break;
+ case 12:R0=RegS & 0xff;
+R1=RegS>>8;
+Segment[1]=0x80;
+break;
+ case 13:R0=RegS & 0xff;
+R1=RegS>>8;
+Segment[1]=0x40;
+break;
+ case 14:R0=RegS & 0xff;
+R1=RegS>>8;
+Segment[0]=0x80;
+Segment[1]=0;
+break;
+ case 15:R0=RegS & 0xff;
+R1=RegS>>8;
+Segment[0]=0x40;
+break;
+
+
+default:break;
+        }
+Indicator1(R0);
+Indicator2(R1);
+}
+void ControlParamInd(void)
+{
+if(RegimIndMain==1)
+        {
+if((RegS & 0x80)&&(!(RegSOld & 0x80)))
+
+                {
+if(ParamInd<15)
+++ParamInd;
+else
+ParamInd=0;
+RegSOld |=0x80;
+                }
+        }
+ if(!(RegS & 0x80))
+RegSOld &=0xff7f;
+
+}
+
+ void init_SSPKDG(void)
+{
+  RST_CLK->PER_CLOCK |=0x100; //SSP1
+  RST_CLK->SSP_CLOCK |=0x1000003;
+
+        SPI1->SSPx_CR0=0xf;
+        SPI1->SSPx_CR1=0x2;//enable work
+        SPI1->SSPx_CPSR=10;//clock
+
+}
+     void IndParKDG(void)
+    {
+    unsigned int R0;
+    unsigned int R1;
+    unsigned int R2;
+    R0=2;
+        while(R0)
+        --R0;
+ R2=CtAnod>>1;
+ R2 &=0x7;
+ RegSSP=Segment[R2];
+ RegSSP=RegSSP<<8;
+ RegSSP &=0xff00;
+
+ switch(R2)
+                {
+
+ case 0:RegSSP |=0xfe;
+
+ break;
+  case 1:RegSSP |=0xfd;
+
+ break;
+ case 2:RegSSP |=0xfb;
+ break;
+  case 3:RegSSP |=0xf7;
+ break;
+ case 4:RegSSP |=0xef;
+ break;
+  case 5:RegSSP |=0xdf;
+ break;
+ case 6:RegSSP |=0xbf;
+ break;
+  case 7:RegSSP |=0x7f;
+ break;
+
+ default: break;
+                }
+        SPI1->SSPx_DR=RegSSP;
+        SPI1->SSPx_CR1 |=0x2;//enable work
+    }
+
+
+
+ void   ReadKn(void)
+{
+ RegKnOld=RegKn;
+
+
+if(!(PORTC->RXTX & 0x10))
+RegKn |=1;
+else
+RegKn &=0xfffe;
+if(!(PORTC->RXTX & 0x20))
+RegKn |=2;
+else
+RegKn &=0xfffd;
+if(!(PORTC->RXTX & 0x40))
+RegKn |=4;
+else
+RegKn &=0xfffb;
+if(!(PORTC->RXTX & 0x80))
+RegKn |=8;
+else
+RegKn &=0xfff7;
+
+if(!(PORTC->RXTX & 0x100))
+RegKn |=0x10;
+else
+RegKn &=0xffef;
+if(!(PORTC->RXTX & 0x200))
+RegKn |=0x20;
+else
+RegKn &=0xffdf;
+if(!(PORTC->RXTX & 0x400))
+RegKn |=0x40;
+else
+RegKn &=0xffbf;
+if(!(PORTC->RXTX & 0x800))
+RegKn |=0x80;
+else
+RegKn &=0xff7f;
+
+if(!(PORTC->RXTX & 0x8))
+RegKn |=0x100;
+else
+RegKn &=0xfeff;
+
+if(!(PORTC->RXTX & 0x1000))
+RegKn |=0x200;
+else
+RegKn &=0xfdff;
+if(!(PORTC->RXTX & 0x2000))
+RegKn |=0x400;
+else
+RegKn &=0xfbff;
+if(!(PORTC->RXTX & 0x4000))
+RegKn |=0x800;
+else
+RegKn &=0xf7ff;
+if(!(PORTC->RXTX & 0x8000))
+RegKn |=0x1000;
+else
+RegKn &=0xefff;
+
+
+if(RegKnOld==RegKn)
+RegS=RegKn;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void    SetError(void)
+    {
+    unsigned char R0;
+     for(R0=0;R0<=11;++R0)
+        {
+    if(!(CtError[R0]))
+    Error |=(1<<R0);
+        }
+     for(R0=0;R0<=15;++R0)
+        {
+    if(!(CtError1[R0]))
+    Error1 |=(1<<R0);
+        }
+     if(!(CtError2[0]))
+    Error2 |=1;
+     if(!(CtError2[1]))
+    Error2 |=2;
+    }
+
+void    ResetError(void)
+    {
+    unsigned char R0;
+     Error=0;
+     for(R0=0;R0<=15;++R0)
+    CtError[R0]=CtError0[R0];
+      Error1=0;
+     for(R0=0;R0<=15;++R0)
+    CtError1[R0]=CtError1_0[R0];
+       RegimError1=0;
+      Error2=0;
+     for(R0=0;R0<=15;++R0)
+    CtError2[R0]=CtError2_0[R0];
+       RegimError2=0;
+        RomReceiveRS1[5][3]=0;
+        ErrorPKDU2=0;
+
+    }
+void LoadRegTransmit(void)
+{
+static unsigned int R1;
+static unsigned int R2;
+RegTransmitRS1[40]=0xff;
+RegTransmitRS1[39]=0xff;
+RegTransmitRS1[38]=NumberBlock1;
+R1=RegS>>8;
+RegTransmitRS1[26]=R1 & 0xff;
+R1=RegS;
+RegTransmitRS1[27]=R1 & 0xff;
+R1=RomReceiveEthernet[5];
+RegTransmitRS1[5]=R1 & 0xff;
+R1=RomReceiveEthernet[4];
+RegTransmitRS1[4]=R1 & 0xff;
+R1=RomReceiveEthernet[3];
+RegTransmitRS1[3]=R1 & 0xff;
+R1=RomReceiveEthernet[2];
+RegTransmitRS1[2]=R1 & 0xff;
+R1=RomReceiveEthernet[1];
+RegTransmitRS1[1]=R1 & 0xff;
+
+}
+
+  void UART2_IRQHandler(void)
+{
+unsigned int R0;
+unsigned int R1;
+unsigned int R2;
+
+        if(TestUsart[5])
+        --TestUsart[5];
+        else
+        TestUsart[5]=110;
+
+
+R1=UART2->MIS & 0xfff;
+
+
+R0= UART2->DR & 0xfff;
+if(R1 & 0x780)//Int Error
+        {
+
+UART2->ICR |=0xfff;//reset int
+UART2->RSR_ECR=0xff;//Reset Error
+CtReceiveRS1=CtReceiveRS0;
+CtTransmitRS1=CtReceiveRS0;
+PORTD->RXTX &=0xfb;
+return;
+        }
+else if(R1 & 0x10)
+        {
+R0 &=0xff;
+UART2->ICR |=0xfff;//reset int
+UART2->RSR_ECR=0xff;//Reset Error
+
+if(RegimTr)
+                {
+
+if(CtTransmitRS1>1)
+                        {
+
+       --CtTransmitRS1;
+       UART2->DR=RegTransmitRS1[CtTransmitRS1];
+       if(CtTransmitRS1>=(CtReceiveRS0-1))
+       ControlTransmit1=0;
+       else
+       ControlTransmit1 +=RegTransmitRS1[CtTransmitRS1];
+
+                        }
+else if(CtTransmitRS1==1)
+                        {
+
+         --CtTransmitRS1;
+        UART2->DR=ControlTransmit1;
+
+                        }
+else
+                        {
+        ++TestUsart[0];
+        if(TestUsart[0]>999)
+        TestUsart[0]=0;
+          RegimTr=0;
+
+         PORTD->RXTX &=0xfb;
+        CtUsart[0]=10;//300;//32;
+        CtTransmitRS1=CtReceiveRS0;
+  CtError[2]=CtError0[1];
+ CtError[7]=CtError0[6];
+                        }
+               }
+
+else
+//Receive far
+
+                {
+if(!CtReceiveRS1)
+        {
+if(TestUsart[1])
+--TestUsart[1];
+else
+TestUsart[1]=5000;
+        }
+TestUsart[3]=CtReceiveRS1;
+
+RamReceiveRS1[CtReceiveRS1]=R0;
+if(CtReceiveRS1==CtReceiveRS0)
+                        {
+
+ if(R0==0xff)
+ --CtReceiveRS1;
+ else
+ CtReceiveRS1=CtReceiveRS0;
+  return;
+                        }
+
+else if(CtReceiveRS1==(CtReceiveRS0-1))
+                        {
+
+
+ if(R0==0xff)
+        {
+ --CtReceiveRS1;
+ ControlReceive1=0;
+        }
+ else
+ CtReceiveRS1=CtReceiveRS0;
+ return;
+                        }
+else if((CtReceiveRS1)&&(CtReceiveRS1<=(CtReceiveRS0-2)))
+                        {
+
+ --CtReceiveRS1;
+ControlReceive1 +=R0;
+
+
+                        }
+ else if(!CtReceiveRS1)
+                        {
+
+CtReceiveRS1=CtReceiveRS0;
+TestUsart[2]=RamReceiveRS1[8];
+if(TestUsart[8])
+--TestUsart[8];
+else
+TestUsart[8]=5000;
+
+if((ControlReceive1& 0xff)!=R0)
+ {
+ TestError[0]=R0;
+ TestError[1]=ControlReceive1 & 0xff;
+ }
+else
+ {
+ TestError[2]=R0;
+ TestError[3]=ControlReceive1 & 0xff;
+ }
+
+if((ControlReceive1 & 0xff)==R0)
+                                        {
+
+ for(R2=0;R2<=10;++R2)
+ RomReceiveRS1[R2][RamReceiveRS1[8]]=RamReceiveRS1[R2];
+ if(RamReceiveRS1[38]==1)
+                                                {
+ CtUsart[0]=2;
+ CtError[1]=CtError0[1];
+ CtError[6]=CtError0[6];
+                                                }
+  if(RamReceiveRS1[38]==5)
+                                                {
+ CtUsart[0]=4;
+ CtError[5]=CtError0[1];
+ CtError[10]=CtError0[6];
+                                                }
+  if(RamReceiveRS1[38]==4)
+                                                {
+ CtUsart[0]=6;
+ CtError[4]=CtError0[1];
+ CtError[9]=CtError0[6];
+                                                }
+
+ if(RamReceiveRS1[38]==3)
+                                                {
+ CtUsart[0]=8;
+ CtError[3]=CtError0[1];
+ CtError[8]=CtError0[6];
+                                                }
+
+                                        }
+
+                        }
+                }
+
+        }
+}
+
+
+
+
+
+
+
+         void    TransmitUsart(void)
+        {
+unsigned int R3;
+  LoadRegTransmit();
+  ++Test141223[1];
+  ++Test141223[2];
+  ++Test141223[0];
+        RegimTr=1;
+       PORTD->RXTX |=0x4;
+R3=50;
+while(R3)
+--R3;
+       UART2->CR |=0x100;
+       UART2->DR=0xff;//NumberBlock1;
+        UART2->ICR |=0x20;//Reset Int Transmit
+        CtTransmitRS1=CtReceiveRS0;
+
+        ControlTransmit1=0;//NumberBlock1;
+        ControlReceive1=0;
+
+if(TestUsart[4])
+--TestUsart[4];
+else
+TestUsart[4]=100;
+
+
+
+        }
+
+
+
+
+
+  void Timer1_IRQHandler(void)
+{
+
+if(TIMER1->STATUS & 0x2)//CNT=ARR
+        {
+     if(CtAnod<15)
+++CtAnod;
+else
+CtAnod=0;
+
+if(!(CtAnod & 1))
+        {
+
+    PORTD->RXTX |=0x8;
+IndParKDG();
+TIMER1->ARR=1000;
+ReadKn();
+        }
+else
+        {
+
+        SPI1->SSPx_CR1 &=0xfffd;//denable work
+    PORTD->RXTX &=0xfff7;
+
+TIMER1->ARR=5000;
+        }
+         }
+ TIMER1->STATUS=0;
+}
+
+
+  void Timer2_IRQHandler(void)
+{
+static unsigned int R0;
+static unsigned int R1;
+static unsigned int R2;
+
+
+if(TIMER2->STATUS & 0x2)//CNT=ARR
+        {
+ if(!(PORTD->RXTX & 4))//Transmit =off
+  CtError[11]=CtError0[11];
+
+if(Error & 0x800)
+        {
+PORTD->RXTX &=0xfb;
+InitUsart9600();
+
+ CtReceiveRS1=CtReceiveRS0;
+ CtTransmitRS1=CtReceiveRS0;
+CtUsart[0]=0x10;
+Error &=0xf7ff;
+
+CtError[11]=CtError0[11];
+
+        }
+
+
+
+else if((Error & 0x40)&&(Error & 0x100)&&(Error & 0x200)&&(Error & 0x400))
+        {
+InitUsart9600();
+
+ CtReceiveRS1=CtReceiveRS0;
+ CtTransmitRS1=CtReceiveRS0;
+CtUsart[0]=0x10;
+Error &=0xf8bf;
+CtError[6]=CtError0[6];
+CtError[8]=CtError0[6];
+CtError[9]=CtError0[6];
+CtError[10]=CtError0[6];
+        }
+
+
+for(R0=1;R0<=11;++R0)
+                {
+if(CtError[R0])
+--CtError[R0];
+                }
+
+
+if(CtUsart[0])
+--CtUsart[0];
+else
+                {
+ if(PORTD->RXTX & 0x1)
+ TransmitUsart();
+ CtUsart[0]=10;//64;//32;
+                }
+TIMER2->STATUS &=0xfffd;
+        }
+ TIMER2->STATUS=0;
+
+
+}
+
+void    InitTimer1(void)
+{
+RST_CLK->PER_CLOCK |=0x4000; //Timer1
+TIMER1->CNTRL = 0;
+TIMER1->CNT = 0x00000007; //CT
+TIMER1->ARR =0xffff;//CT from 0 to ARR
+TIMER1->PSG =0x1;//FTim2=clk/2
+TIMER1->CNTRL = 0x1;//Enable Timer1
+TIMER1->IE = 0x2;//CNT=ARR
+
+SYS->ISER00 |=0x4000;//Timer1
+}
+void    InitTimer2(void)
+{
+RST_CLK->PER_CLOCK |=0x8000; //Timer2
+
+TIMER2->CNTRL = 0;
+TIMER2->CNT = 0x00000007; //CT
+TIMER2->ARR =0xffff;//CT from 0 to ARR
+TIMER2->PSG =0xf;//FTim2=clk/2
+TIMER2->CNTRL = 0x1;//Enable Timer2
+
+
+
+TIMER2->IE = 0x2;//CNT=ARR,CH3
+SYS->ISER00 |=0x8000;//Timer2
+}
+
+ void InitPORTA(void)
+{
+  PORTA->OE=0xbd;
+
+  PORTA->FUNC =0;
+
+  PORTA->ANALOG =0xff; //PA-digital
+  PORTA->PULL=0x420000; //PA-R+=on
+  PORTA->PWR=0x5555;
+  PORTA->PD=0;////Trigger Shmitta=on
+
+}
+void InitPORTB(void)
+{
+RST_CLK->PER_CLOCK |=0x400000; //PORTB
+PORTB->ANALOG =0xffff;
+PORTB->OE =0;
+PORTB->PULL=0x40000000;//R +=on
+PORTB->FUNC =0;
+PORTB->PWR=0x55555555;
+PORTB->PD=0;//Trigger Shmitta=on
+}
+void InitPORTC(void)
+{
+  RST_CLK->PER_CLOCK |=0x800000;
+  PORTC->RXTX=0;
+  PORTC->OE =0;
+  PORTC->FUNC =0;
+  PORTC->ANALOG =0xffff; //PC0-digital
+  PORTC->PULL =0xfff80000; //PC0-R+=on
+  PORTC->PWR=0x55555555;
+  PORTC->PD=0;//Trigger Shmitta=on
+
+}
+
+void InitPORTD(void)
+{
+  PORTD->ANALOG=0xffff; //analog
+  PORTD->PULL=0x50000;//R +=on
+  PORTD->PWR=0x55555555; //
+  PORTD->OE =0x140e; //PD1=out
+  PORTD->FUNC =0x330000a;//ssp1,UART2 TXD,UART2 RXD
+  PORTD->PD=0;//Trigger Shmitta=on
+}
+
+
+void InitPORTF(void)
+{
+
+
+  PORTF->OE=0xff; //PF0,PF1=out
+  PORTF->FUNC=0;
+  PORTF->ANALOG |=0xff; //PF-digital
+  PORTF->PULL=0; //PF2,PF3-R-=on
+   PORTF->PWR=0x5555; //Slow front
+    PORTF->PD=0; //driver
+}
+
+
+
+
+
+
+
+
+
+void main(void)
+{
+unsigned long RMain;
+#ifdef DEBUG
+  debug();
+#endif
+
+RST_CLK->PER_CLOCK |=0x10; //RST_CLK
+RST_CLK->PER_CLOCK |=0x8;//EEPROM
+RST_CLK->PER_CLOCK |=0x200000; //PORTA
+
+InitPORTB();
+InitPORTC();
+RMain=1000;
+while(RMain)
+--RMain;
+if(!(PORTB->RXTX & 0x4000))
+while(!(PORTC->RXTX & 4))
+        {
+while(1)
+                {
+
+PORTC->RXTX &= 0xfffc;
+PORTC->RXTX &= 0xfffc;
+PORTC->RXTX &= 0xfffc;
+PORTC->RXTX &= 0xfffc;
+                }
+        }
+
+else
+        {
+
+InitPORTC();
+
+
+RST_CLK->PER_CLOCK |=0x20000000; //PORTF
+InitPORTF();
+InitPORTA();
+
+RST_CLK->PER_CLOCK |=0x1000000; //PORTD
+InitPORTD();
+RST_CLK->HS_CONTROL=0x1;//osc_E=on
+while(!(RST_CLK->CLOCK_STATUS & 4))
+RST_CLK->CPU_CLOCK=0x102;//CLOCK_CPU=osc_E
+
+
+
+
+RST_CLK->TIM_CLOCK=0x7000000;
+InitTimer1();
+InitTimer2();
+InitUsart2();
+
+
+
+
+ CtReceiveRS1=CtReceiveRS0;
+ CtTransmitRS1=CtReceiveRS0;
+
+ init_SSPKDG();
+
+
+ResetError();
+
+RegimWork=0;
+RomReceiveRS1[7][4]=0;
+RomReceiveRS1[5][4]=0;
+RomReceiveRS1[7][2]=0;
+DPNom=3350;
+CtDPNom=100;
+CtReikaOff0=50;
+CtReikaOn0=5;
+NNom=2600;
+CtUsart[0]=NumberBlock1;
+ErrorPKDU2=0;
+PORTB->RXTX &=0xfbf;
+CtTimeKSKG=100;
+
+CtReadKn=40;
+
+while(1)
+
+
+              {
+
+IWDG->KR=0xaaaa;
+SetError();
+
+Avaria=0x41;
+ControlRegimInd();
+
+if((!RegimIndMain)&&(Avaria))
+//IndicatorAvaria();
+Indicator1(111);
+else
+        {
+ControlParamInd();
+IndicatorParam();
+        }
+
+
+
+ if(TimeWork<9999)
+ ++TimeWork;
+ else
+ TimeWork=0;
+
+
+              }
+        }
+
+}
+
+

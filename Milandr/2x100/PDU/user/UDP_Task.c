@@ -123,14 +123,14 @@ void vUDP_Task( void *pvParameters )
 		MyEth = Ethernet;
 #endif	//PRINTSTATUSON
 
-//        My_IP[0] =  193;
-//        My_IP[1] =  1;
-//        My_IP[2] =  1;
-//        My_IP[3] =  8;
-			My_IP[0] =  192;
-			My_IP[1] =  168;
-			My_IP[2] =  100;
-			My_IP[3] =  99;
+        My_IP[0] =  193;
+        My_IP[1] =  1;
+        My_IP[2] =  1;
+        My_IP[3] =  8;
+//			My_IP[0] =  192;
+//			My_IP[1] =  168;
+//			My_IP[2] =  100;
+//			My_IP[3] =  99;
 
 //         My_MAC[0] = 0x94;
 //         My_MAC[1] = 0xDE;

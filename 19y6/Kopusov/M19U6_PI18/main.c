@@ -638,9 +638,15 @@ void main(void)
 {
 	uint8_t cnt_b = 0, CtStart=0;
 	
+	wdt_enable( WDTO_500MS );
+	wdt_reset();
+	
 	_delay_ms(100);
+	wdt_reset();
 	_delay_ms(100);
+	wdt_reset();
 	_delay_ms(100);
+	wdt_reset();
 
 
 	DDRA = 0x1f;
@@ -674,8 +680,7 @@ void main(void)
 	uart_38400();
 		
 	clear_lcd();
-	wdt_enable( WDTO_500MS );
-	wdt_reset();
+	
 
 	while( cnt_b < 24 )	{
 		index_char[ cnt_b ] = 6; //FF

@@ -28,22 +28,22 @@ typedef struct
 typedef struct
 {
 	uint16_t	Type;    	  	//ист=1 ТС=1
-	uint16_t	DG_Cmd;      	//биты Команды ДГ
-	uint16_t	DG_res1;      	//
-	uint16_t	GOM_Cmd;      	//
-	uint16_t	SET_GOM_cmd;    //
-	uint16_t	Indikator;      //
-	uint16_t	UL;  	    	//
-	uint16_t	U_dg;			//
-	uint16_t	U_gom;			//
-	uint16_t	U_c;			//
-	uint16_t	I_L;			//
-	uint16_t	TOG;			//
-	uint16_t	DM;				//
-	uint16_t	Ris_DG;			//
-	uint16_t	Ris_GOM;      	//
-	uint16_t	U_ab;			//
-	uint16_t	I_ab;			//
+	uint16_t	DG_Cmd;      	//Udg1
+	uint16_t	DG_res1;      	//Udg2
+	uint16_t	GOM_Cmd;      	//Igen1
+	uint16_t	SET_GOM_cmd;    //Igen2
+	uint16_t	Indikator;      //Fgen1
+	uint16_t	UL;  	    	//Fgen2
+	uint16_t	U_dg;			//Pgen1
+	uint16_t	U_gom;			//Pgen2
+	uint16_t	U_c;			//Ndiz1
+	uint16_t	I_L;			//Ndiz2
+	uint16_t	TOG;			//PM1
+	uint16_t	DM;				//PM2
+	uint16_t	Ris_DG;			//TOG1
+	uint16_t	Ris_GOM;      	//TOG2
+	uint16_t	U_ab;			//UT1
+	uint16_t	I_ab;			//UT2
 } packet_To_eth;
 
 #define UDP_DATA_LEN  (int)(34) //размер в байтах status_packet_To_eth
