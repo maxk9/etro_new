@@ -258,7 +258,7 @@ void vUDP_Task( void *pvParameters )
 										if(!Temp)	//check CRC
 										{
 											//read input data
-//											PKDU_From_Eth.Type = (Packet.Data[42]<<8)|(Packet.Data[43]);
+											PKDU_From_Eth.Type = (Packet.Data[42]<<8)|(Packet.Data[43]);
 											PKDU_From_Eth.DG_Cmd = (Packet.Data[44]<<8)|(Packet.Data[45]);
 											PKDU_From_Eth.GOM_Cmd = (Packet.Data[46]<<8)|(Packet.Data[47]);
 											PKDU_From_Eth.DG_Un = (Packet.Data[48]<<8)|(Packet.Data[49]);
@@ -680,10 +680,10 @@ int Send_UDP(_ethernet_packet* Dt, unsigned char* UDP_Packet)
         UDP_Packet[34] = Dt->Data[36]; 
         UDP_Packet[35] = Dt->Data[37];//src port 6600
 
-		UDP_Packet[36] = Dt->Data[34]; 
-        UDP_Packet[37] = Dt->Data[35];//dest port
-//		UDP_Packet[36] = 0x19; 
- //       UDP_Packet[37] = 0xC9;//dest port 6601
+//		UDP_Packet[36] = Dt->Data[34]; 
+//        UDP_Packet[37] = Dt->Data[35];//dest port
+		UDP_Packet[36] = 0x19; 
+		UDP_Packet[37] = 0xC9;//dest port 6601
 		
 		tmp_16 = UDP_DATA_LEN + 8;
 		UDP_Packet[38] = (uint8_t)(tmp_16>>8); //length
@@ -745,6 +745,15 @@ int Send_UDP(_ethernet_packet* Dt, unsigned char* UDP_Packet)
 		UDP_Packet[74] = (uint8_t)(PKDU_To_Eth.I_ab>>8);
 		UDP_Packet[75] = (uint8_t)PKDU_To_Eth.I_ab;
 		
+		UDP_Packet[76] = (uint8_t)(PKDU_To_Eth.FLine>>8);
+		UDP_Packet[77] = (uint8_t)PKDU_To_Eth.FLine;
+		
+		UDP_Packet[78] = (uint8_t)(PKDU_To_Eth.Reserv1>>8);
+		UDP_Packet[79] = (uint8_t)PKDU_To_Eth.Reserv1;
+		
+		UDP_Packet[80] = (uint8_t)(PKDU_To_Eth.Reserv2>>8);
+		UDP_Packet[81] = (uint8_t)PKDU_To_Eth.Reserv2;
+		
 		Temp = CheckSum_UDP(UDP_Packet);
         UDP_Packet[40] = (uint8_t)(Temp >> 8);
         UDP_Packet[41] = (uint8_t)Temp;
@@ -758,7 +767,7 @@ int Send_UDP(_ethernet_packet* Dt, unsigned char* UDP_Packet)
 		MyPointer = (uint32_t*)TxCurrentDesc.FirstEmptyWord;
 
 		//tmp_16 = UDP_DATA_LEN + 33 + 8;
-		tmp_16 = 76;
+		tmp_16 = 82;
         if((tmp_16 & 0x0001) == 1)
         {
 			UDP_Packet[tmp_16] = 0;

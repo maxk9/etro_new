@@ -13,6 +13,7 @@ typedef struct
 //Структура сигналов для обмена Ethernet-пакетами
 typedef struct
 {
+	uint16_t	Type;
 	uint16_t	DG_Cmd;      	//биты Команды ДГ
 	uint16_t	GOM_Cmd;      	//биты Команды ГОМ
 	uint16_t	DG_Un;      	//DG U
@@ -43,9 +44,12 @@ typedef struct
 	uint16_t	Ris_GOM;      	//
 	uint16_t	U_ab;			//
 	uint16_t	I_ab;			//
+	uint16_t	FLine;			//
+	uint16_t	Reserv1;		//
+	uint16_t	Reserv2;		//
 } packet_To_eth;
 
-#define UDP_DATA_LEN  (int)(34) //размер в байтах status_packet_To_eth
+#define UDP_DATA_LEN  (int)(40) //размер в байтах status_packet_To_eth
 
 
 extern packet_To_eth PKDU_To_Eth;

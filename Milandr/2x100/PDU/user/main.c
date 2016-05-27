@@ -60,7 +60,7 @@ extern void vUDP_Task( void *pvParameters );
 
 extern void clear_lcd( void );
 
-extern uint16_t RegS;
+extern uint32_t RegS,RegSOld,RegS1,RegKnOld, CtKn,RegSWork;
 
 /*
  * Configure the hardware for the demo.
@@ -84,6 +84,120 @@ void UART2_send_byte(uint8_t byte);
 //==================================================================================
 //==================================================================================
 //==================================================================================
+// void vKeyHandlerTask( void *pvParameters ) 
+//{ // Key handling is a continuous process and as such the task 
+//	// is implemented using an infinite loop (as most real time 
+//	// tasks are). 
+//	static uint32_t RegKn = 0;//, RegKnOld = 0;
+//	
+//	for( ;; ) 
+//	{ 
+//		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_6))
+//			RegKn |=1;
+//		else
+//			RegKn &=0xFFfffe;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_7))
+//			RegKn |=2;
+//		else
+//			RegKn &=0xFFfffd;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_8))
+//			RegKn |=4;
+//		else
+//			RegKn &=0xFFfffb;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_9))
+//			RegKn |=8;
+//		else
+//			RegKn &=0xFFfff7;
+
+//		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_10))
+//			RegKn |=0x10;
+//		else
+//			RegKn &=0xFFffef;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_11))
+//			RegKn |=0x20;
+//		else
+//			RegKn &=0xFFffdf;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_4))
+//			RegKn |=0x40;
+//		else
+//			RegKn &=0xFFffbf;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_5))
+//			RegKn |=0x80;
+//		else
+//			RegKn &=0xFFff7f;
+
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_8))
+//			RegKn |=0x100;
+//		else
+//			RegKn &=0xFFfeff;
+
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_9))
+//			RegKn |=0x200;
+//		else
+//			RegKn &=0xFFfdff;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_10))
+//			RegKn |= 0x400;
+//		else
+//			RegKn &= 0xFFfbff;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_11))
+//			RegKn |= 0x800;
+//		else
+//			RegKn &= 0xFFf7ff;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_3))
+//			RegKn |= 0x1000;
+//		else
+//			RegKn &= 0xFFefff;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_13))
+//			RegKn |= 0x2000;
+//		else
+//			RegKn &= 0xFFDfff;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_12))
+//			RegKn |= 0x4000;
+//		else
+//			RegKn &= 0xFFbfff;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_15))
+//			RegKn |= 0x8000;
+//		else
+//			RegKn &= 0xFF7fff;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_14))
+//			RegKn |= 0x10000;
+//		else
+//			RegKn &= 0xFeFfff;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_5))
+//			RegKn |= 0x20000;
+//		else
+//			RegKn &= 0xFdFfff;
+//		
+//		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_3))
+//			RegKn |= 0x40000;
+//		else
+//			RegKn &= 0xFbFfff;
+//		
+////		if(RegKnOld == RegKn)
+////		{
+//			PKDU_Status.Ctrl_BTN = RegKn;
+////		}
+////		else
+////			RegKnOld = RegKn;
+//		
+//		vTaskDelay( 50 );
+//	} 
+//}
+
  void vKeyHandlerTask( void *pvParameters ) 
 { // Key handling is a continuous process and as such the task 
 	// is implemented using an infinite loop (as most real time 
@@ -92,113 +206,115 @@ void UART2_send_byte(uint8_t byte);
 	
 	for( ;; ) 
 	{ 
-		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_6))
-			RegKn |=1;
-		else
-			RegKn &=0xFFfffe;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_7))
-			RegKn |=2;
-		else
-			RegKn &=0xFFfffd;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_8))
-			RegKn |=4;
-		else
-			RegKn &=0xFFfffb;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_9))
-			RegKn |=8;
-		else
-			RegKn &=0xFFfff7;
+		unsigned char R0;
+		RegSOld=RegS;
+		RegKnOld=RegKn;
 
-		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_10))
-			RegKn |=0x10;
-		else
-			RegKn &=0xFFffef;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_11))
-			RegKn |=0x20;
-		else
-			RegKn &=0xFFffdf;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_4))
-			RegKn |=0x40;
-		else
-			RegKn &=0xFFffbf;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_5))
-			RegKn |=0x80;
-		else
-			RegKn &=0xFFff7f;
 
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_8))
-			RegKn |=0x100;
+		if(!(MDR_PORTC->RXTX & 0x10))
+		RegKn |=1;
 		else
-			RegKn &=0xFFfeff;
+		RegKn &=0xffffe;
+		if(!(MDR_PORTC->RXTX & 0x20))
+		RegKn |=2;
+		else
+		RegKn &=0xffffd;
+		if(!(MDR_PORTD->RXTX & 0x8))
+		RegKn |=4;
+		else
+		RegKn &=0xffffb;
+		if(!(MDR_PORTD->RXTX & 0x20))
+		RegKn |=0x8;
+		else
+		RegKn &=0xffff7;
 
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_9))
-			RegKn |=0x200;
+		if(!(MDR_PORTC->RXTX & 0x100))
+		RegKn |=0x10;
 		else
-			RegKn &=0xFFfdff;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_10))
-			RegKn |= 0x400;
+		RegKn &=0xfffef;
+		if(!(MDR_PORTC->RXTX & 0x200))
+		RegKn |=0x20;
 		else
-			RegKn &= 0xFFfbff;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_11))
-			RegKn |= 0x800;
+		RegKn &=0xfffdf;
+		if(!(MDR_PORTC->RXTX & 0x400))
+		RegKn |=0x40;
 		else
-			RegKn &= 0xFFf7ff;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_3))
-			RegKn |= 0x1000;
+		RegKn &=0xffbf;
+		if(!(MDR_PORTC->RXTX & 0x800))
+		RegKn |=0x80;
 		else
-			RegKn &= 0xFFefff;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_13))
-			RegKn |= 0x2000;
+		RegKn &=0xfff7f;
+
+		if(!(MDR_PORTC->RXTX & 0x8))
+		RegKn |=0x100;
 		else
-			RegKn &= 0xFFDfff;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_12))
-			RegKn |= 0x4000;
+		RegKn &=0xffeff;
+
+		if(!(MDR_PORTC->RXTX & 0x1000))
+		RegKn |=0x200;
 		else
-			RegKn &= 0xFFbfff;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_15))
-			RegKn |= 0x8000;
+		RegKn &=0xfdff;
+		if(!(MDR_PORTC->RXTX & 0x2000))
+		RegKn |=0x400;
 		else
-			RegKn &= 0xFF7fff;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTC, PORT_Pin_14))
-			RegKn |= 0x10000;
+		RegKn &=0xffbff;
+		if(!(MDR_PORTC->RXTX & 0x4000))
+		RegKn |=0x800;
 		else
-			RegKn &= 0xFeFfff;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_5))
-			RegKn |= 0x20000;
+		RegKn &=0xff7ff;
+		if(!(MDR_PORTC->RXTX & 0x8000))
+		RegKn |=0x1000;
 		else
-			RegKn &= 0xFdFfff;
-		
-		if(!PORT_ReadInputDataBit(MDR_PORTD, PORT_Pin_3))
-			RegKn |= 0x40000;
+		RegKn &=0xfefff;
+		if(!(MDR_PORTD->RXTX & 0x40))
+		RegKn |=0x2000;
 		else
-			RegKn &= 0xFbFfff;
-		
-//		if(RegKnOld == RegKn)
-//		{
-			PKDU_Status.Ctrl_BTN = RegKn;
-//		}
-//		else
-//			RegKnOld = RegKn;
+		RegKn &=0xfdfff;
+		if(!(MDR_PORTD->RXTX & 0x80))
+		RegKn |=0x4000;
+		else
+		RegKn &=0xfbfff;
+		if(!(MDR_PORTD->RXTX & 0x100))
+		RegKn |=0x8000;
+		else
+		RegKn &=0xf7fff;
+		if(!(MDR_PORTD->RXTX & 0x200))
+		RegKn |=0x10000;
+		else
+		RegKn &=0xeffff;
+		if(!(MDR_PORTD->RXTX & 0x400))
+		RegKn |=0x20000;
+		else
+		RegKn &=0xdffff;
+		if(!(MDR_PORTD->RXTX & 0x800))
+		RegKn |=0x40000;
+		else
+		RegKn &=0xbffff;
+		if(!(MDR_PORTE->RXTX & 0x8000))
+		RegKn |=0x80000;
+		else
+		RegKn &=0x7ffff;
+
+		if(RegKnOld==RegKn)
+		RegS=RegKn;
+
+
+		for(R0=0;R0<=18;++R0)
+		{
+			if((RegS & (1<<R0))&&(!(RegSOld & (1<<R0))))
+			{
+				RegSWork |=(1<<R0);
+				CtKn=30;
+			}
+
+		}
+
+		if(!CtKn)
+		RegSWork=0;
 		
 		vTaskDelay( 50 );
 	} 
 }
-
-
 
 int main(void)
 {

@@ -120,6 +120,17 @@ void delay_ms(uint16_t delay)
 	
 	for( ;; ) 
 	{ 
+		if((MDR_PORTC->RXTX & 0x8))
+		{
+			
+			RegKn &=0xfeff;
+			RegS |= 0x100;
+		}
+		else
+		{
+		PKDU_From_Eth.Type = 0;
+		//RegKn |=0x100;
+		
 		if(!(MDR_PORTC->RXTX & 0x10))
 			RegKn |=1;
 		else
@@ -160,10 +171,6 @@ void delay_ms(uint16_t delay)
 		else
 			RegKn &=0xff7f;
 
-		if(!(MDR_PORTC->RXTX & 0x8))
-			RegKn |=0x100;
-		else
-			RegKn &=0xfeff;
 
 		if(!(MDR_PORTC->RXTX & 0x1000))
 			RegKn |=0x200;
@@ -185,15 +192,15 @@ void delay_ms(uint16_t delay)
 		else
 			RegKn &= 0xefff;
 
-
 		if(RegKnOld == RegKn)
 		{
+			//if()
 			RegS = RegKn;
 			PKDU_Status.Ctrl_BTN = RegS;
 		}
 		else
 			RegKnOld = RegKn;
-		
+		}
 		vTaskDelay( 50 );
 	} 
 }
