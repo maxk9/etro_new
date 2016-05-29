@@ -392,11 +392,12 @@ void I2C_IRQHandler( void )
 
 int main(void)
 {
+	
 	uint32_t pausa = 0xFFFF;
 	uint8_t cnt_b = 0, i = 0, addr = 0, state = 0, read_d[10];
-	bool stop=false, st_one = false;
+	bool stop = false, st_one = false;
 	
-	while( --pausa);
+	while( --pausa );
 	
 	prvSetupHardware();
 

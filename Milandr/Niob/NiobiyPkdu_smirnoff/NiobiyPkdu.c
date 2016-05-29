@@ -71,8 +71,13 @@ unsigned int Segment[10];
 
 
 unsigned int RegTransmitCAN[16];
+<<<<<<< HEAD
 unsigned    int CtTransmitCAN;
 unsigned    int CtErrorCAN=1000;
+=======
+unsigned    int                 CtTransmitCAN;
+unsigned    int                 CtErrorCAN=1000;
+>>>>>>> a1e7ddd6154de1914661074c1d8335cadeed174b
 unsigned int CANPauza;
 unsigned int TestI2C;
 unsigned int CtUEnd;
@@ -386,6 +391,10 @@ void IndicatorParam(void)
 		Segment[1] &=0xbf;
 		Segment[1] |=0x80;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a1e7ddd6154de1914661074c1d8335cadeed174b
 		break;
 	case 1:R0=ILine;//Avaria>>16;//ISet;//CtError[8];//R0=TestUsart[0];
 		R1=RIzol;//RomReceiveRS1[12][1];//RIzol FLine;//Avaria>>24;//PowerSet;//CtError[9];//PeriodUI[1] & 0xff;
@@ -921,8 +930,12 @@ void UART2_IRQHandler(void)
 						CtUsart[0]=8;
 						CtError[3]=CtError0[1];
 						CtError[8]=CtError0[6];
+<<<<<<< HEAD
 						Error &=0xfef7;                                                
 						}
+=======
+						Error &=0xfef7;                                                }
+>>>>>>> a1e7ddd6154de1914661074c1d8335cadeed174b
 
 				}
 
@@ -1211,9 +1224,13 @@ void    ControlLed(void)
 	else
 	Segment[1] &=0xef;//PGD
 	if((USet>=320)&&(USet<=440))
+<<<<<<< HEAD
 	{
 	Segment[0] |=0x20;//Set=Norma
 	}
+=======
+	Segment[0] |=0x20;//Set=Norma
+>>>>>>> a1e7ddd6154de1914661074c1d8335cadeed174b
 	else
 	Segment[0] &=0xdf;
 	if(RomReceiveRS1[36][1] & 1)//DG

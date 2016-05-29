@@ -395,8 +395,12 @@ PORT_InitTypeDef PORT_InitStructure;
 			
 			if( RX_Ok )
 			{
-				for(cnt=0; cnt<ADC_COUNT_CH; cnt++)
-					UART2_send_byte((uint8_t)(ADC_Arr[cnt]>>4));
+				for(cnt=0; cnt<ADC_COUNT_CH; cnt++){
+					if(cnt<4)
+						UART2_send_byte((uint8_t)(ADC_Arr[cnt]>>4)*3);
+					else
+						UART2_send_byte((uint8_t)(ADC_Arr[cnt]>>4));
+				}
 				UART2_send_byte((uint8_t)Status.KN_DG);
 				UART2_send_byte((uint8_t)(Status.KN_DG>>8));
 				UART2_send_byte((uint8_t)sum_Nd);

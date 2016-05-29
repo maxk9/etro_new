@@ -5,7 +5,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
+#include <ctype.h>	
+
 #include <string.h>
 #include <avr/pgmspace.h>
 
@@ -162,10 +163,10 @@ unsigned    int             Error;
 unsigned    char RegimError;
 unsigned    char	CtError[13];
 static const unsigned  char CtError0[13]=
-{250,250,250,250,100,100,100,250,8,8,28,40,100};
+{125,125,125,125,50,50,50,125,4,4,14,20,20};
 unsigned    char RegimClearError;
 unsigned    char	CtClearError[4];
-static const unsigned  char CtClearError0=20;
+static const unsigned  char CtClearError0=10;
 
 /*	Error
 0	No on set
@@ -446,7 +447,8 @@ void    ReceiveTransmitMaster(void)
 	TWCR=(1<<TWINT)|(1<<TWEN)|(1<<TWSTO);
 
 	while(R1)
-	{_WDR();
+	{
+		_WDR();
 		--R1;
 	}
 
@@ -575,7 +577,7 @@ void	ChangeFNomGenLine(void)
 {
 
 	ChangeFNom=0;
-	if(Period[0]>(Period[2]+100))
+	if(Period[0]>(Period[2]+50))
 	ChangeFNom=0x4;
 	else 
 	ChangeFNom=0x80;
@@ -1365,10 +1367,10 @@ void	ChangeRegimError(void)
 		if(R1 & 4)
 		R0 |=0x2;
 		
-	}	
-	
+	}				
 	if(StatusKontaktorGen & 0x10)//Generator
 	{
+
 		if(!(R1 & 2))
 		{
 			if(!(StatusKontaktorGen & 0x80))
@@ -1385,7 +1387,6 @@ void	ChangeRegimError(void)
 	else
 	{
 		CtError[11]=CtError0[11];
-		
 		if(R1 & 2)
 		R0 |=0x8;
 		
@@ -1428,7 +1429,7 @@ void	ChangeRegimError(void)
 
 	RegimError=R0;		
 	
-}
+}	
 void    ClearError(void)
 {
 
@@ -1834,9 +1835,7 @@ void	 CRCTransmitGlobal(unsigned char R0)
 void	LoadRegTransmitUsart(unsigned char NumberFunction)
 {
 	
-	//RegTransmitUsart[0]=0x1;//Adres	
-	RegTransmitUsart[0]=0x0;
-	RegTransmitUsart[1]=DeltaUITest;
+	RegTransmitUsart[0]=0x1;//Adres	
 	switch(NumberFunction)
 	{
 	case 0:
@@ -1971,7 +1970,7 @@ int main(void)
 	UCSRB=0x1c;//enable transmit,receive,8bit
 	UCSRC=0x86;//0x24 7 bit control parity
 	UBRRH=0;
-	UBRRL=103;//9600
+	UBRRL=51;//9600
 
 	while(!(UCSRA & 0x20))
 	_WDR();
@@ -2058,9 +2057,9 @@ int main(void)
 		{
 			CtLinkTWI=100;
 			if(NumberLink)
-				NumberLink=0;
+			NumberLink=0;
 			else
-				NumberLink=1;
+			NumberLink=1;
 			_WDR();
 			LoadRegTransmit();//++RegTransmit
 			ReceiveTransmitMaster();
@@ -2158,18 +2157,16 @@ void MeagerPeriod(unsigned char R2)
 		R1=TCNT1;
 		TCCR1B |=0x2;//0.5mkc
 	}
-	
 	R0=R1-TNT1Old[R2];
 	if(!CtOverLow[R2])
 	R0=0xffff;
-	
 	Period[R2]=R0;
 	R4=R0>>8;
 
 	
 	
 	TNT1Old[R2]=R1;
-	CtGate[R2]=120;
+	CtGate[R2]=60;
 	CtOverLow[R2]=2;
 
 
@@ -2180,8 +2177,13 @@ void MeagerPeriod(unsigned char R2)
 		DeltaUITest=(R1-FazaU)>>8;
 		else
 		DeltaUITest=100;
+
 	}
 	
+
+
+
+
 }
 
 SIGNAL(SIG_ADC)
@@ -2351,6 +2353,7 @@ SIGNAL(SIG_OVERFLOW1)// 32 Ms
 			if(CtError[12]<CtError0[12])
 			++CtError[12];
 		}
+
 		else if(CtError[12])
 		--CtError[12];
 
@@ -2474,14 +2477,14 @@ SIGNAL(SIG_OVERFLOW2)//128mks
 		if(PIND & 0x40)
 		TIMSK=TIMSK | 0x20;//enable Int capture1
 		else
-		CtGate[2]=60; 
+		CtGate[2]=30; 
 	}
 	if(CtGate[3]==1)
 	{
 		if(!(ACSR & 0x20))
 		ACSR |=8;//Enable Int comp
 		else
-		CtGate[3]=60;
+		CtGate[3]=30;
 	}
 
 

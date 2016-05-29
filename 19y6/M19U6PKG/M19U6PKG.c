@@ -737,20 +737,20 @@ void    LoadRegTransmit(void)
 	R1=RomReceive[1][0];
 	R1 &=0x7;
 	if(StatusKontaktorGen & 0x11)
-	R1 |=0x40;
+		R1 |=0x40;
 	if(StatusKontaktorSet & 0x11)
-	R1 |=0x80;
+		R1 |=0x80;
     RegTransmit[3][1]=R1;
 	R1=0;
 	if(ULine>150)
-	R1|=1;
+		R1|=1;
 	if(Error & 0x1c8c)
-	R1 |=0x80;
+		R1 |=0x80;
 	if((!(Error & 0x40))&&(USet>180))
-	R1 |=0x20;
+		R1 |=0x20;
 
 	if(Error & 0x43)
-	R1 |=0x40;
+		R1 |=0x40;
 
 
 

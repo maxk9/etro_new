@@ -15,23 +15,16 @@ BOODLEVEL BODEN SUT1 CKSEL2*/
 #include <avr/pgmspace.h>
 //===================================================
 
-
+const char NoTopliva[] PROGMEM={"  Õ≈“ “ŒœÀ»¬¿ "};
+const unsigned char T8[] PROGMEM={"   “Œ∆ < 8 C    "};
+const unsigned char T37[] PROGMEM={"   “Œ∆ < 37 C    "};
 const char GotovMu[] PROGMEM={" √Œ“Œ¬ÕŒ—“‹ Ã”  "};
-const char GotovSystem[] PROGMEM={" √Œ“Œ¬ÕŒ—“‹     "};
 const unsigned char OffZashita[] PROGMEM={"«¿Ÿ»“¿ Œ“ Àﬁ◊≈Õ¿ "};
-const unsigned char ErrorLuk1[] PROGMEM={"  Œ“ ¿« Àﬁ ¿ 1  "};
-const unsigned char ErrorLuk2[] PROGMEM={"  Œ“ ¿« Àﬁ ¿ 2  "};
-const unsigned char ErrorLuk3[] PROGMEM={"  Œ“ ¿« Àﬁ ¿ 3  "};
-const unsigned char ErrorLuk4[] PROGMEM={"  Œ“ ¿« Àﬁ ¿ 4  "};
-const unsigned char ErrorLuk5[] PROGMEM={"  Œ“ ¿« Àﬁ ¿ 5  "};
-const unsigned char ErrorLG1[] PROGMEM= {"  Œ“ ¿« À√ ƒ√ 1 "};
-const unsigned char ErrorLG2[] PROGMEM= {"  Œ“ ¿« À√ ƒ√ 2 "};
-const unsigned char ErrorLR1[] PROGMEM= {"  Œ“ ¿« ÀP ƒ√ 1 "};
-const unsigned char ErrorLR2[] PROGMEM= {"  Œ“ ¿« ÀP ƒ√ 2  "};
-const unsigned char ErrorLPCH1[] PROGMEM= {"Œ“ ¿« Àﬁ ¿ œ◊ 1 "};
-const unsigned char ErrorLPCH2[] PROGMEM= {"Œ“ ¿« Àﬁ ¿ œ◊ 2 "};
+const unsigned char ErrorLuk[] PROGMEM={"  Œ“ ¿« Àﬁ ¿     "};
 const unsigned char Izol[] PROGMEM={"Õ»« ¿ﬂ »«ŒÀﬂ÷»ﬂ   "};
-const unsigned char OtkazDT[] PROGMEM={"  Œ“ ¿« ƒ“      "};
+const unsigned char ErrorSHU[] PROGMEM={"  Œ“ ¿«  ÿ”      "};
+
+unsigned    int             CtInitInd;
 unsigned    int             CtInd;
 unsigned    int             CtBegin;
 unsigned    char             TestTwi;
@@ -165,7 +158,7 @@ void    LoadControlSum(void)
 	unsigned char R0;
 	RegTransmit[0]=0;
 	for(R0=1;R0<=10;++R0)
-		RegTransmit[0] +=RegTransmit[R0];
+	RegTransmit[0] +=RegTransmit[R0];
 }  
 void    LoadRegTransmit(void)
 {
@@ -418,8 +411,27 @@ void Ind19U6(void)
 		SPDR=0x20;
 	}
 }
+void IndOtkazSHU(void)
+{
+
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+		R3=pgm_read_byte_near(&ErrorSHU[R1]);
+
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+}
+
 //1		
-void IndOtkazLuk1(void)
+void IndNoTopliva(void)
 {
 
 	unsigned int R0;
@@ -431,7 +443,7 @@ void IndOtkazLuk1(void)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLuk1[R1]);
+		R3=pgm_read_byte_near(&NoTopliva[R1]);
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
@@ -439,83 +451,108 @@ void IndOtkazLuk1(void)
 
 }
 //2	
-void IndOtkazLuk2(void)
+void IndT8Gr(void)
 {
+
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
 
 	for(R1=0;R1<=15;++R1)
-	{
+	{		
 		R0=500;
-		while(R0--) _WDR(); 
-		R3 = pgm_read_byte_near(&ErrorLuk2[R1]);
-		if( R3>=192 )
-		R3 = R3-64;
-		SPDR = R3;
-	}
-}
-//3			
-void IndGotovDU(void)
-{
-	const unsigned char R2[]="  √Œ“Œ¬ÕŒ—“‹ ƒ” ";
-	unsigned int R0;
-	unsigned char R1;
-	unsigned char R3;
-	SetCursor(0,0);
-	for(R1=0;R1<=15;++R1)
-	{
-		R0=500;
-		while(R0--)_WDR(); 
+		while(R0--)         _WDR(); 
+		R3=pgm_read_byte_near(&T8[R1]);
 
-		R3=R2[R1];
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
+
 }
-//4
-void IndRabota(void)
+//3			
+void IndT37Gr(void)	
 {
-	const unsigned char R2[]="    –¿¡Œ“¿       ";
+
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
 	for(R1=0;R1<=15;++R1)
-	{
+	{		
 		R0=500;
-		while(R0--) _WDR(); 
+		while(R0--)         _WDR(); 
+		R3=pgm_read_byte_near(&T37[R1]);
 
-		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+}	
+//4
+void IndZashitaOff(void)
+{
+
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         
+		_WDR(); 
+		R3=pgm_read_byte_near(&OffZashita[R1]);
+
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
 }
 //5
-void IndOtkazLuk3(void)
+void IndOtkazLuk(void)
 {
+
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
-
 	for(R1=0;R1<=15;++R1)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLuk3[R1]);
+		R3=pgm_read_byte_near(&ErrorLuk[R1]);
+
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
 }
 //6
-void IndNoLinkSHU(void)
+void IndLowIzol(void)
 {
-	const unsigned char R2[]="Õ≈“ —¬ﬂ«» — ÿ”   ";
+
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+		R3=pgm_read_byte_near(&Izol[R1]);
+
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+
+}
+//7
+void IndNoPusk(void)
+{
+	const unsigned char R2[]="    HET œ”— ¿    ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
@@ -531,10 +568,8 @@ void IndNoLinkSHU(void)
 		SPDR=R3;
 	}
 
-
 }
-
-//7		
+//8		
 void IndNoLinkMSHU(void)
 {
 	const unsigned char R2[]="Õ≈“ —¬ﬂ«» — ÃŸ”  ";
@@ -554,10 +589,10 @@ void IndNoLinkMSHU(void)
 	}
 
 }	
-//8
-void IndOtkazSHSN(void)
+//9
+void IndNoOborotov(void)
 {
-	const unsigned char R2[]="  OTKA3 ÿ—Õ     ";
+	const unsigned char R2[]="  Õ≈“ Œ¡Œ–Œ“Œ¬   ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
@@ -573,10 +608,10 @@ void IndOtkazSHSN(void)
 		SPDR=R3;
 	}
 }
-//9	
-void IndRegimMSHU(void)
+//10	
+void IndNoVozb(void)
 {
-	const unsigned char R2[]="  –≈∆»Ã ÃŸ”    ";
+	const unsigned char R2[]="Õ≈“ ¬Œ«¡”∆ƒ≈Õ»ﬂ  ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
@@ -587,127 +622,93 @@ void IndRegimMSHU(void)
 		while(R0--)         _WDR(); 
 
 		R3=R2[R1];
-		if(R3>=192)
-		R3=R3-64;
-		SPDR=R3;
-	}
-}
-//10
-void IndOtkazLuk4(void)
-{
-	unsigned int R0;
-	unsigned char R1;
-	unsigned char R3;
-	SetCursor(0,0);
-
-	for(R1=0;R1<=15;++R1)
-	{		
-		R0=500;
-		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLuk4[R1]);
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
 }	
-
-
 //11	
-void IndOtkazLuk5(void)
+void IndErrorU(void)
 {
+	const unsigned char R2[]="    U HE HOPMA   ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
-
 	for(R1=0;R1<=15;++R1)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLuk5[R1]);
+
+		R3=R2[R1];
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
-}
-
+}	
 //12
-void IndOtkazLukDG1(void)
+void IndPeregruzKG(void)
 {
+	const unsigned char R2[]=" œ≈–≈√–”« ¿ ¬√   ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
-
 	for(R1=0;R1<=15;++R1)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLG1[R1]);
+
+		R3=R2[R1];
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
 }
 //13
-void IndOtkazLukDG2(void)
+void IndErrorKG(void)
 {
+	const unsigned char R2[]="   Œ“ ¿« ¬√      ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
-
 	for(R1=0;R1<=15;++R1)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLG2[R1]);
+
+		R3=R2[R1];
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
 }
-//14
-void IndOtkazLukLR1(void)
-{
-	unsigned int R0;
-	unsigned char R1;
-	unsigned char R3;
-	SetCursor(0,0);
 
-	for(R1=0;R1<=15;++R1)
-	{		
-		R0=500;
-		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLR1[R1]);
-		if(R3>=192)
-		R3=R3-64;
-		SPDR=R3;
-	}
-}	
 //15	
-void IndOtkazLukLR2(void)
+void IndNoLinkRU(void)
 {
+	const unsigned char R2[]=" Õ≈“ —¬ﬂ«» — –Õ  ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
-
 	for(R1=0;R1<=15;++R1)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLR2[R1]);
+
+		R3=R2[R1];
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
+
 }	
 //16	
-void IndGotovMU(void)
+void IndObratnajaP(void)
 {
-
-
+	const unsigned char R2[]="Œ¡–¿“. ÃŒŸÕŒ—“‹   ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
@@ -716,19 +717,17 @@ void IndGotovMU(void)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&GotovMu[R1]);
 
+		R3=R2[R1];
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
 }
-
-//17	
-void IndGotovSystem(void)
+//19	
+void IndPogar(void)
 {
-
-
+	const unsigned char R2[]="    œŒ∆¿–         ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
@@ -737,14 +736,132 @@ void IndGotovSystem(void)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&GotovSystem[R1]);
 
+		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+}	
+//20	
+void IndErrorKS(void)
+{
+	const unsigned char R2[]="  Œ“ ¿« ¬—       ";
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+
+		R3=R2[R1];
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
 }
-//18	
+//21	
+void IndUKorpus(void)
+{
+	const unsigned char R2[]="  U Õ¿  Œ–œ”—≈   ";
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+
+		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+}	
+
+//23
+void IndErrorSet(void)
+{
+	const unsigned char R2[]=" —≈“‹ Õ≈ ÕŒ–Ã¿   ";
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+
+		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+}
+//24	
+void IndNoMasla(void)
+{
+	const unsigned char R2[]=" Õ≈“ Ã¿—À¿      ";
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+
+		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+}
+
+//25	
+void IndDozapravkaTopliva(void)
+{
+	const unsigned char R2[]="ƒŒ«¿œ–. “ŒœÀ»¬¿ ";
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+
+		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+}		
+
+//26
+void IndDozapravkaMasla(void)
+{
+	const unsigned char R2[]="ƒŒ«¿œ–¿¬ ¿ Ã¿—À¿ ";
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+
+		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+}
+
+//27	
 void IndOtkazFVU(void)
 {
 	const unsigned char R2[]="  Œ“ ¿« ‘¬”     ";
@@ -764,62 +881,130 @@ void IndOtkazFVU(void)
 	}
 
 }
-//19
-void IndOtkazLukPCH1(void)
+
+//28	
+void IndAvarDvig(void)
 {
+	const unsigned char R2[]={0x80,0x82,0x80,0x90,0x88,0x9f,0x20,0x84,0x82,0x88,0x83,0x80,0x92,0x85,0x8b,0x9f};//"¿¬¿–»ﬂ ƒ¬»√¿“≈Àﬂ ";
+
+
+
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
-
 	for(R1=0;R1<=15;++R1)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLPCH1[R1]);
+
+		R3=R2[R1];
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
 }
-//20
-void IndOtkazLukPCH2(void)
+//29	
+void IndGotovMU(void)
 {
+
+
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
-
 	for(R1=0;R1<=15;++R1)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&ErrorLPCH2[R1]);
+		R3=pgm_read_byte_near(&GotovMu[R1]);
+
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
 }
-//21
-void IndOtkazDT(void)
+//30	
+void IndGotovDU(void)
 {
+	const unsigned char R2[]="  √Œ“Œ¬ÕŒ—“‹ ƒ” ";
 	unsigned int R0;
 	unsigned char R1;
 	unsigned char R3;
 	SetCursor(0,0);
-
 	for(R1=0;R1<=15;++R1)
 	{		
 		R0=500;
 		while(R0--)         _WDR(); 
-		R3=pgm_read_byte_near(&OtkazDT[R1]);
+
+		R3=R2[R1];
 		if(R3>=192)
 		R3=R3-64;
 		SPDR=R3;
 	}
+}	
+//31	
+void IndRabota(void)
+{
+	const unsigned char R2[]="    –¿¡Œ“¿       ";
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+
+		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+
 }
 
+//32	
+void IndNoLinkSN(void)
+{
+	const unsigned char R2[]="Õ≈“ —¬ﬂ«» — ÿ—Õ ";
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
 
+		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+
+}
+//33	
+void IndOtkazPZA(void)
+{
+	const unsigned char R2[]="   Œ“ ¿« ”œœ¿    ";
+
+	unsigned int R0;
+	unsigned char R1;
+	unsigned char R3;
+	SetCursor(0,0);
+	for(R1=0;R1<=15;++R1)
+	{		
+		R0=500;
+		while(R0--)         _WDR(); 
+
+		R3=R2[R1];
+		if(R3>=192)
+		R3=R3-64;
+		SPDR=R3;
+	}
+
+}	
 
 /*++++++++++++++++++++++++++++++++++++++++++*/
 
@@ -857,7 +1042,7 @@ int main(void)
 	TWAR=(NumberLink<<1)+4;   
 	TWCR =(1<<TWEA)|(1<<TWEN);
 
-	CtStart=200;
+	CtStart=100;
 	while(CtStart--)	_WDR();
 
 
@@ -869,10 +1054,10 @@ int main(void)
 	NumberIndicator=2;
 	_SEI();
 
-	CtBegin=250;    
+	CtBegin=125;    
 	/*Work program*/ 
 	RomReceive[1]=2; 
-	RomReceive[2]=16;//3;  
+	RomReceive[2]=29;//3;  
 	RomReceive[3]=0; 
 	RomReceive[4]=0;    
 	RomReceive[5]=0; 
@@ -881,24 +1066,32 @@ int main(void)
 	RomReceive[8]=0;  
 	RomReceive[9]=0; 
 	RomReceive[10]=0;  
-	
-	CtInd=50;     	 
+	CtInd=50;
+	CtInitInd=150;	     	 
 	while(1)
 	{
 		_WDR();
-
+		if(!CtInitInd)
+		{
+			InitInd();
+			CtInitInd=150;
+		}
 
 
 
 		ReadKn();
-		if(Error & 0x80)
+		if(CtBegin)
 		{
+			
 			if(!CtInd)
 			{
-				IndOtkazSHSN();
-				CtInd=50;
+				Ind19U6();
+				CtInd=25;
 			}
 		}
+
+
+
 		else if(!RomReceive[1])
 		{
 			if(!CtInd)
@@ -906,96 +1099,118 @@ int main(void)
 				IndicatorTest();
 				CtInd=50;
 			}
+
 		}
-		else if(!CtInd)//800 ms
+
+		else if(!CtInd)
 		{
 
-			CtInd=50;
+			CtInd=25;
 
 
 			switch(RomReceive[NumberIndicator])
 			{
-			case 1:
-				IndOtkazLuk1();
 
+			case 1:
+				IndNoTopliva();
 				break;
 			case 2:
-				IndOtkazLuk2();
-
+				IndT8Gr();
 				break;
-
 			case 3:
-				IndGotovDU();
+				IndT37Gr();
 				break;
+
 			case 4:
-				IndRabota();
+				IndZashitaOff();
 				break;
 			case 5:
-				IndOtkazLuk3();
+				IndOtkazLuk();
 				break;
 
 			case 6:
-				IndNoLinkSHU();
+				IndLowIzol();
 				break;
 			case 7:
-				IndNoLinkMSHU();
+				IndNoPusk();
 				break;
 			case 8:
-				IndOtkazSHSN();
+				IndNoLinkMSHU();
 				break;
+
 			case 9:
-				IndRegimMSHU();
+				IndNoOborotov();
 				break;
-
-			case 10:
-				IndOtkazLuk4();
-
-				break;
+				;
 			case 11:
-				IndOtkazLuk5();
-
+				IndErrorU();
 				break;
 
-			case 12:
-				IndOtkazLukDG1();
-
-				break;
 			case 13:
-				IndOtkazLukDG2();
-
+				IndErrorKG();
 				break;
-			case 14:
-				IndOtkazLukLR1();
 
-				break;
 			case 15:
-				IndOtkazLukLR2();
-
+				IndNoLinkRU();
 				break;
 			case 16:
-				IndGotovMU();
+				IndObratnajaP();
 				break;
+
 			case 17:
-				IndGotovSystem();
+				IndPeregruzKG();
 				break;
-			case 18:
+
+
+			case 19:
+				IndPogar();
+				break;
+
+			case 20:
+				IndErrorKS();
+				break;
+
+			case 21:
+				IndUKorpus();
+				break;
+
+			case 23:
+				IndErrorSet();
+				break;
+			case 24:
+				IndNoMasla();
+				break;
+			case 25:
+				IndDozapravkaTopliva();
+				break;
+			case 26:
+				IndDozapravkaMasla();
+				break;
+			case 27:
 				IndOtkazFVU();
 				break;
-			case 19:
-				IndOtkazLukPCH1();
-
+			case 28:
+				IndAvarDvig();
 				break;
-			case 20:
-				IndOtkazLukPCH2();
-
+			case 29:
+				IndGotovMU();
 				break;
-			case 21:
-				IndOtkazDT();
+			case 30:
+				IndGotovDU();
 				break;
 
-			default:
+			case 31:
+				IndRabota();
 				break;
 
+
+			case 32:
+				IndNoLinkSN();
+				break;
+			case 33:
+				IndOtkazPZA();
+				break;
+			default:break;
 
 			}
 		}
@@ -1008,6 +1223,7 @@ int main(void)
 		{
 			++TestTWI;
 			ReceiveTransmitSlave();
+
 		}
 
 		if(!CtErrorLink[0])//ErrorLink;
@@ -1018,7 +1234,7 @@ int main(void)
 			TWAR=0;
 			TWCR =0;
 			TWSR=0xf8;
-			CtStart=50;
+			CtStart=25;
 			while(CtStart--)	_WDR();
 			TWBR=0x7f;//F TWI
 			TWAR=(NumberLink<<1)+4;
@@ -1026,7 +1242,7 @@ int main(void)
 			//   TWCR |=(1<<TWINT);
 			CtErrorLink[0]=CtErrorLink0[0];
 
-			CtStart=200;
+			CtStart=100;
 			while(CtStart--)	_WDR();
 		}
 	}
@@ -1037,6 +1253,8 @@ int main(void)
 
 SIGNAL(SIG_OVERFLOW0)//16ms
 {
+	if(CtInitInd)
+	--CtInitInd;
 	if(CtInd)
 	--CtInd;
 	if(CtBegin)
@@ -1060,7 +1278,7 @@ SIGNAL(SIG_OVERFLOW2)/*128mks*/
 		--TestInd;
 		else
 		TestInd=999;
-		CtChangeInd=5000;
+		CtChangeInd=2500;
 M1:	if(NumberIndicator<=9)
 		++NumberIndicator;
 		else
