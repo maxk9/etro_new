@@ -250,7 +250,7 @@ namespace WindowsFormsApplication1
 
                     out_frame = new string[100];
 
-                    out_frame[0] = ("Message sent to port: 6600, IP:" + ipAddress);
+                    out_frame[0] = ("Message sent to " + ipAddress+":6600 ");
 
                     u.Connect(ipAddress, 6600);
 
